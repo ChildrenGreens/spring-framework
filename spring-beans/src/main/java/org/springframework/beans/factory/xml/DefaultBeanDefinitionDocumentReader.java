@@ -168,11 +168,15 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
 		if (delegate.isDefaultNamespace(root)) {
+			// 获取beans的子节点
 			NodeList nl = root.getChildNodes();
+			// 遍历每一个子节点
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
 				if (node instanceof Element ele) {
+					// 判断是否为默认的命名空间
 					if (delegate.isDefaultNamespace(ele)) {
+						// 解析默认元素
 						parseDefaultElement(ele, delegate);
 					}
 					else {
@@ -187,15 +191,21 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	}
 
 	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
+
+		// import元素
 		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
 			importBeanDefinitionResource(ele);
 		}
+		// alias元素
 		else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) {
 			processAliasRegistration(ele);
 		}
+
+		// bean元素
 		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
 			processBeanDefinition(ele, delegate);
 		}
+		// beans组元素
 		else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) {
 			// recurse
 			doRegisterBeanDefinitions(ele);
