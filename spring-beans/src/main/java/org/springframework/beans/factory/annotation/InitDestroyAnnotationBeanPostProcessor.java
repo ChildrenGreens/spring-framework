@@ -52,6 +52,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that invokes annotated init and destroy methods. Allows for an annotation
@@ -212,8 +215,10 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 		return mergedNames.distinct().toArray(String[]::new);
 	}
 
+	// 重要
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// init destory
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
 			metadata.invokeInitMethods(bean, beanName);
@@ -261,6 +266,7 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 
 
 	private LifecycleMetadata findLifecycleMetadata(Class<?> beanClass) {
+		// TODO: 为啥不放在缓存里
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
 			return buildLifecycleMetadata(beanClass);
@@ -286,6 +292,9 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 			return this.emptyLifecycleMetadata;
 		}
 
+		/**
+		 * 收集PostConstruct 和 PreDestroy
+		 */
 		List<LifecycleMethod> initMethods = new ArrayList<>();
 		List<LifecycleMethod> destroyMethods = new ArrayList<>();
 		Class<?> currentClass = beanClass;
@@ -398,6 +407,7 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 					if (logger.isTraceEnabled()) {
 						logger.trace("Invoking init method on bean '" + beanName + "': " + lifecycleMethod.getMethod());
 					}
+					// 反射调用
 					lifecycleMethod.invoke(target);
 				}
 			}

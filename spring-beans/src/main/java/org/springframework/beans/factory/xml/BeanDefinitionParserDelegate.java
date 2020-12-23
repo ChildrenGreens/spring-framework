@@ -412,6 +412,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
+		// 解析bean标签中id元素
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
@@ -512,17 +513,27 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			// 根据className创建一个BeanDefinition对象
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
 
+			// 解析bean中属性，并设置到BeanDefinition对象中
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+			// 解析bean中所有的description子标签，用StringBuilder拼接设置到BeanDefinition中description属性中
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
-
+			// 解析bean中的meta子标签，并设置到BeanDefinition对象中
 			parseMetaElements(ele, bd);
-			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
-			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
+			// 重要程度2
+			// 解析bean中的lookup-override子标签，并设置到BeanDefinition对象中
+			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			// 解析bean中的replaced-method子标签，并设置到BeanDefinition对象中
+			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
+			// 解析bean中的constructor-arg子标签，并设置到BeanDefinition对象中
 			parseConstructorArgElements(ele, bd);
+			// 解析bean中的sub-elements子标签，并设置到BeanDefinition对象中
 			parsePropertyElements(ele, bd);
+
+			// 可以不看，用不到
 			parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
@@ -844,14 +855,17 @@ public class BeanDefinitionParserDelegate {
 		}
 		this.parseState.push(new PropertyEntry(propertyName));
 		try {
+			// 判断是否有重复的属性元素
 			if (bd.getPropertyValues().contains(propertyName)) {
 				error("Multiple 'property' definitions for property '" + propertyName + "'", ele);
 				return;
 			}
+			// 解析属性元素中的value值
 			Object val = parsePropertyValue(ele, bd, propertyName);
 			PropertyValue pv = new PropertyValue(propertyName, val);
 			parseMetaElements(ele, pv);
 			pv.setSource(extractSource(ele));
+			// 将解析出来的属性值对象存储到bd(简称)对象中
 			bd.getPropertyValues().addPropertyValue(pv);
 		}
 		finally {

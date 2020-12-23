@@ -154,7 +154,7 @@ class ConstructorResolver {
 					}
 				}
 			}
-			if (argsToResolve != null) {
+			if (argsToResolve != null) {// 构造函数参数实例化
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve);
 			}
 		}
@@ -203,14 +203,14 @@ class ConstructorResolver {
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
-			AutowireUtils.sortConstructors(candidates);
+			AutowireUtils.sortConstructors(candidates); // 排序所有的构造函数，默认选择参数多的
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			Deque<UnsatisfiedDependencyException> causes = null;
 
 			for (Constructor<?> candidate : candidates) {
 				int parameterCount = candidate.getParameterCount();
-
+				// 如果之前的构造器已经有一个被处理过了，则后面一个构造器就不用处理了
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
@@ -303,7 +303,7 @@ class ConstructorResolver {
 		}
 
 		Assert.state(argsToUse != null, "Unresolved constructor arguments");
-		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));
+		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse)); // 构造函数实例化，constructorToUse构造函数，构造函数参数的值
 		return bw;
 	}
 
@@ -390,6 +390,31 @@ class ConstructorResolver {
 	 * method, or {@code null} if none (-> use constructor argument values from bean definition)
 	 * @return a BeanWrapper for the new instance
 	 */
+	
+	/**
+	 * 使用factory-method实例化bean的两种方式
+	 *
+	 * 方法一：
+	 * 		通过XML配置bean标签里面的factory-bean和factory-method属性，把bean实例化交给另外一个类的非静态方法（即factory-method所指向的方法）
+	 * 	大致流程
+	 * 		1.通过当前beanDefinition对象获取到factoryBeanName属性（在前面生成bd,并完善bd属性时设置值的）
+	 * 		2.判断factoryBeanName是否为null()<岔路口：1. factoryBeanName初始化，2.factoryClass初始化>
+	 * 		3.根据factoryBeanName从beanFactory中获取到bean标签中factory-bean对应的类的对象（解释：因为你将这个类的实例化交给了另外一个类的方法，所以一点要获取到被委托类的对象）
+	 * 		3.将获取到被委托的类对象赋值给factoryClass指针（方便后续流程统一处理）,然后从factoryClass获取所有的Method,生成数组
+	 * 		4.遍历数组中的方法，条件（非静态方法 && bean标签中的方法所指方法就是这个方法），并加入到candidates候选列表中
+	 * 		5.判断方法，找到factoryMethod
+	 * 		6.反射调用factoryMethod方法在堆内存里，生成object对象，然后包装成BeanWrapperImpl对象
+	 *
+	 *
+	 * 方法二：
+	 * 		通过调用当前bean标签设置的factory-method方法（bean标签对应本类中静态方法），把bean实例化交给本类实现
+	 * 	大致流程（与方法一区别不大，下面主要将区别之处）
+	 * 		1.判断beanDefinition中是否有beanClass属性，如果没有就抛出异常（也就是bean标签中是否有class属性）
+	 * 		2.因为将本类作为实例化对象类，所以会将beanClass赋值给factoryClass
+	 * 		3.会将isStatic局部变量赋值为true，因为本类factory-method方法要求必须是静态方法
+	 *
+	 */
+
 	public BeanWrapper instantiateUsingFactoryMethod(
 			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
 
@@ -400,18 +425,22 @@ class ConstructorResolver {
 		Class<?> factoryClass;
 		boolean isStatic;
 
+		// 获取factoryBean name
 		String factoryBeanName = mbd.getFactoryBeanName();
 		if (factoryBeanName != null) {
 			if (factoryBeanName.equals(beanName)) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
 						"factory-bean reference points back to the same bean definition");
 			}
+			// 获取factoryBean的实例对象
 			factoryBean = this.beanFactory.getBean(factoryBeanName);
 			if (mbd.isSingleton() && this.beanFactory.containsSingleton(beanName)) {
 				throw new ImplicitlyAppearedSingletonException();
 			}
 			this.beanFactory.registerDependentBean(factoryBeanName, beanName);
+			// 根据factoryBean实例对象获取Class
 			factoryClass = factoryBean.getClass();
+			// factoryMethod要为非静态方法
 			isStatic = false;
 		}
 		else {
@@ -422,6 +451,7 @@ class ConstructorResolver {
 			}
 			factoryBean = null;
 			factoryClass = mbd.getBeanClass();
+			// factoryClass要为静态方法
 			isStatic = true;
 		}
 
@@ -465,8 +495,10 @@ class ConstructorResolver {
 			}
 			if (candidates == null) {
 				candidates = new ArrayList<>();
+				// 候选方法列表
 				Method[] rawCandidates = getCandidateMethods(factoryClass, mbd);
 				for (Method candidate : rawCandidates) {
+					// 遍历判断是否为factoryMethod方法，是就加入到candidates列表中
 					if ((!isStatic || isStaticCandidate(candidate, factoryClass)) && mbd.isFactoryMethod(candidate)) {
 						candidates.add(candidate);
 					}
@@ -488,6 +520,7 @@ class ConstructorResolver {
 			}
 
 			if (candidates.size() > 1) {  // explicitly skip immutable singletonList
+				// 根据参数个数进行排序
 				candidates.sort(AutowireUtils.EXECUTABLE_COMPARATOR);
 			}
 
@@ -632,7 +665,7 @@ class ConstructorResolver {
 				argsHolderToUse.storeCache(mbd, factoryMethodToUse);
 			}
 		}
-
+		// 反射调用factoryMethod，并实例化成object对象，并包装成BeanWrapperImpl对象
 		bw.setBeanInstance(instantiate(beanName, mbd, factoryBean, factoryMethodToUse, argsToUse));
 		return bw;
 	}

@@ -264,6 +264,7 @@ public class InjectionMetadata {
 			if (!shouldInject(pvs)) {
 				return;
 			}
+			// @Resource
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);

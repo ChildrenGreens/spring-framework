@@ -583,7 +583,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see org.springframework.util.PathMatcher
 	 */
 	protected Resource[] findPathMatchingResources(String locationPattern) throws IOException {
-		String rootDirPath = determineRootDir(locationPattern);
+		String rootDirPath = determineRootDir(locationPattern); // 获取扫描包的根路径
 		String subPattern = locationPattern.substring(rootDirPath.length());
 		Resource[] rootDirResources = getResources(rootDirPath);
 		Set<Resource> result = new LinkedHashSet<>(64);
@@ -604,7 +604,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 				result.addAll(doFindPathMatchingJarResources(rootDirResource, rootDirUrl, subPattern));
 			}
 			else {
-				result.addAll(doFindPathMatchingFileResources(rootDirResource, subPattern));
+				result.addAll(doFindPathMatchingFileResources(rootDirResource, subPattern)); // 递归寻找.class文件
 			}
 		}
 		if (logger.isTraceEnabled()) {
