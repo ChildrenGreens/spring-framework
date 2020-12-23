@@ -219,6 +219,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			try {
 				// 不重要，可以不看（流的方式加载文件）
 				Resource[] resources = resourcePatternResolver.getResources(location);
+				// 把字符串类型的XML文件路径，形如：classpath*:user/**/*-content.xml,转换成Resource对象的方式加载配置文件，然后封装成Resource对象，不重要，可以不看
 				// 重要：5
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {

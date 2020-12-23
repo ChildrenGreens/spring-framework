@@ -356,6 +356,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (singletonObject != null) {
 						return singletonObject;
 					}
+					// 把beanName添加到singletonsCurrentlyInCreation Set容器中，这个集合中的bean都是正在被创建的
 					beforeSingletonCreation(beanName);
 				}
 
