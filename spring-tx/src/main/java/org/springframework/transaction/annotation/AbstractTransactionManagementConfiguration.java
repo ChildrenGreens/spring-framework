@@ -67,6 +67,7 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 		}
 	}
 
+	// 获取所有实现TransactionManagementConfigurer接口的bean实例（从下面逻辑看只能有一个实例）
 	@Autowired(required = false)
 	void setConfigurers(Collection<TransactionManagementConfigurer> configurers) {
 		if (CollectionUtils.isEmpty(configurers)) {
@@ -76,6 +77,7 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 			throw new IllegalStateException("Only one TransactionManagementConfigurer may exist");
 		}
 		TransactionManagementConfigurer configurer = configurers.iterator().next();
+		// 调用TransactionManagementConfigurer的annotationDrivenTransactionManager实现方法，获取到txManager对象
 		this.txManager = configurer.annotationDrivenTransactionManager();
 	}
 
@@ -84,6 +86,7 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionAttributeSource transactionAttributeSource() {
 		// Accept protected @Transactional methods on CGLIB proxies, as of 6.0
+		// 创建事务属性处理器
 		AnnotationTransactionAttributeSource tas = new AnnotationTransactionAttributeSource(false);
 		// Apply default rollback rule, as of 6.2
 		if (this.enableTx != null && this.enableTx.getEnum("rollbackOn") == RollbackOn.ALL_EXCEPTIONS) {

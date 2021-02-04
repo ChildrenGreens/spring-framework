@@ -134,13 +134,16 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 			return cpptm.execute(this, action);
 		}
 		else {
+			// 开启事务
 			TransactionStatus status = this.transactionManager.getTransaction(this);
 			T result;
 			try {
+				// 回调业务代码
 				result = action.doInTransaction(status);
 			}
 			catch (RuntimeException | Error ex) {
 				// Transactional code threw application exception -> rollback
+				// 事务回滚
 				rollbackOnException(status, ex);
 				throw ex;
 			}
@@ -149,6 +152,7 @@ public class TransactionTemplate extends DefaultTransactionDefinition
 				rollbackOnException(status, ex);
 				throw new UndeclaredThrowableException(ex, "TransactionCallback threw undeclared checked exception");
 			}
+			// 事务提交
 			this.transactionManager.commit(status);
 			return result;
 		}

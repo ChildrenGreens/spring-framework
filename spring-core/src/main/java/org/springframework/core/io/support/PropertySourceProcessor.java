@@ -88,8 +88,11 @@ public class PropertySourceProcessor {
 
 		for (String location : locations) {
 			try {
+				// 替换占位符
 				String resolvedLocation = this.environment.resolveRequiredPlaceholders(location);
+				// 流的方式加载配置文件并封装成Resource对象
 				for (Resource resource : this.resourcePatternResolver.getResources(resolvedLocation)) {
+					// 加载Resource
 					addPropertySource(factory.createPropertySource(name, new EncodedResource(resource, encoding)));
 				}
 			}
@@ -110,8 +113,10 @@ public class PropertySourceProcessor {
 
 	private void addPropertySource(PropertySource<?> propertySource) {
 		String name = propertySource.getName();
+		// 获取Enviroment对象中的MutablePropertySources
 		MutablePropertySources propertySources = this.environment.getPropertySources();
 
+		// 如果已经存在了该配置文件中的PropertySource，则合并旧的
 		if (this.propertySourceNames.contains(name)) {
 			// We've already added a version, we need to extend it
 			PropertySource<?> existing = propertySources.get(name);
