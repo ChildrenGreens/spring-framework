@@ -103,6 +103,7 @@ public abstract class ConfigurationClassUtils {
 	 * @param metadataReaderFactory the current factory in use by the caller
 	 * @return whether the candidate qualifies as (any kind of) configuration class
 	 */
+	// 先获取metadata对象，然后根据metadata获取注解信息，根据注解确定匹配类型以及是否候选
 	static boolean checkConfigurationClassCandidate(
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 
@@ -112,11 +113,13 @@ public abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
+		// 如果是扫描注解产生的BeanDefinition（ScannedGenericBeanDefinition）
 		if (beanDef instanceof AnnotatedBeanDefinition annotatedBd &&
 				className.equals(annotatedBd.getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = annotatedBd.getMetadata();
 		}
+		// 非扫描注解产生的beanDefinition，比如自己手动创建的
 		else if (beanDef instanceof AbstractBeanDefinition abstractBd && abstractBd.hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
@@ -143,10 +146,13 @@ public abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 从metadata中获取Configuration注解
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 如果有Configuration注解，就是完全匹配表示
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// 如果是有Component ComponentScan Import ImportResource 或者方法上有 @Bean，就是lite匹配
 		else if (config != null || Boolean.TRUE.equals(beanDef.getAttribute(CANDIDATE_ATTRIBUTE)) ||
 				isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
@@ -177,6 +183,7 @@ public abstract class ConfigurationClassUtils {
 			return false;
 		}
 
+		// 判断是否有Component，ComponentScan，Import，ImportResource注解
 		// Any of the typical annotations found?
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
@@ -184,6 +191,7 @@ public abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 判断方法是否有@Bean注解
 		// Finally, let's look for @Bean methods...
 		return hasBeanMethods(metadata);
 	}

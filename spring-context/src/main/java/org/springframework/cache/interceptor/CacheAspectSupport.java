@@ -423,10 +423,12 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 			return executeSynchronized(invoker, method, contexts);
 		}
 
+		//先处理@CacheEvicts的逻辑,,其实就是掉clear方法
 		// Process any early evictions
 		processCacheEvicts(contexts.get(CacheEvictOperation.class), true,
 				CacheOperationExpressionEvaluator.NO_RESULT);
 
+		//处理@Cacheable的逻辑,,其实就是掉get方法
 		// Check if we have a cached value matching the conditions
 		Object cacheHit = findCachedValue(invoker, method, contexts);
 		if (cacheHit == null || cacheHit instanceof Cache.ValueWrapper) {
@@ -541,12 +543,15 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 		Object cacheValue;
 		Object returnValue;
 
+		//如果缓存命中了
 		if (cacheHit != null && !hasCachePut(contexts)) {
 			// If there are no put requests, just use the cache hit
 			cacheValue = unwrapCacheValue(cacheHit);
+			//直接返回缓存中的值
 			returnValue = wrapCacheValue(method, cacheValue);
 		}
 		else {
+			//在这里调用被代理方法
 			// Invoke the method if we don't have a cache hit
 			returnValue = invokeOperation(invoker);
 			cacheValue = unwrapReturnValue(returnValue);
@@ -554,13 +559,17 @@ public abstract class CacheAspectSupport extends AbstractCacheInvoker
 
 		// Collect puts from any @Cacheable miss, if no cached value is found
 		List<CachePutRequest> cachePutRequests = new ArrayList<>(1);
+		//如果缓存没命中或者不是使用的@Cacheable注解
 		if (cacheHit == null) {
+			//处理@Cacheable的逻辑，收集插入请求,插入缓存的值需要调用被代理方法
 			collectPutRequests(contexts.get(CacheableOperation.class), cacheValue, cachePutRequests);
 		}
 
+		//处理@CachePut注解,收集put请求
 		// Collect any explicit @CachePuts
 		collectPutRequests(contexts.get(CachePutOperation.class), cacheValue, cachePutRequests);
 
+		//处理put请求，其实就是掉put方法
 		// Process any collected put requests, either from @CachePut or a @Cacheable miss
 		for (CachePutRequest cachePutRequest : cachePutRequests) {
 			Object returnOverride = cachePutRequest.apply(cacheValue);

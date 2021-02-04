@@ -101,6 +101,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 			return null;
 		}
 
+		// 先从缓存中获取TransactionAttribute对象（事务属性）
 		Object cacheKey = getCacheKey(method, targetClass);
 		TransactionAttribute cached = this.attributeCache.get(cacheKey);
 
@@ -108,6 +109,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 			return (cached != NULL_TRANSACTION_ATTRIBUTE ? cached : null);
 		}
 		else {
+			// 核心代码
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			if (txAttr != null) {
 				String methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
@@ -148,6 +150,7 @@ public abstract class AbstractFallbackTransactionAttributeSource
 	 */
 	@Nullable
 	protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+		// 如果是非public方法，则返回null不会生成代理
 		// Don't allow non-public methods, as configured.
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
@@ -155,15 +158,18 @@ public abstract class AbstractFallbackTransactionAttributeSource
 
 		// The method may be on an interface, but we need attributes from the target class.
 		// If the target class is null, the method will be unchanged.
+		// 获取原始方法
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
 
 		// First try is the method in the target class.
+		// 获取方法上面的@Transactional注解的属性
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
 		if (txAttr != null) {
 			return txAttr;
 		}
 
 		// Second try is the transaction attribute on the target class.
+		// 如果方法上面没有@Transactional注解，则去找类上面是否有@Transactional注解
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;

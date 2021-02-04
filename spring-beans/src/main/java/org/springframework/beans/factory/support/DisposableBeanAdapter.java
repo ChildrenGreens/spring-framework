@@ -113,10 +113,12 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 		Assert.notNull(bean, "Disposable bean must not be null");
 		this.bean = bean;
 		this.beanName = beanName;
+		// 判断是是否实现DisposableBean接口
 		this.nonPublicAccessAllowed = beanDefinition.isNonPublicAccessAllowed();
 		this.invokeDisposableBean = (bean instanceof DisposableBean &&
 				!beanDefinition.hasAnyExternallyManagedDestroyMethod(DESTROY_METHOD_NAME));
 
+		// 判断bd是否有DestroyMethod方法
 		String[] destroyMethodNames = inferDestroyMethodsIfNecessary(bean.getClass(), beanDefinition);
 		if (!ObjectUtils.isEmpty(destroyMethodNames) &&
 				!(this.invokeDisposableBean && DESTROY_METHOD_NAME.equals(destroyMethodNames[0])) &&
@@ -155,6 +157,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			}
 		}
 
+		// 对注解进行收集@PreDestory
 		this.beanPostProcessors = filterPostProcessors(postProcessors, bean);
 	}
 
@@ -199,6 +202,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	public void destroy() {
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
+				// 判断注解@PreDestory
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
@@ -208,6 +212,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				logger.trace("Invoking destroy() on bean with name '" + this.beanName + "'");
 			}
 			try {
+				// 实现接口DisposableBean
 				((DisposableBean) this.bean).destroy();
 			}
 			catch (Throwable ex) {
@@ -244,6 +249,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				}
 			}
 		}
+		// 判断是否属性有destroy-method
 		else if (this.destroyMethods != null) {
 			for (Method destroyMethod : this.destroyMethods) {
 				invokeCustomDestroyMethod(destroyMethod);

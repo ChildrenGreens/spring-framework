@@ -50,6 +50,7 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	@Nullable
 	private ConnectionHandle connectionHandle;
 
+	// 真正的连接对象
 	@Nullable
 	private Connection currentConnection;
 

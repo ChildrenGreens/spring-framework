@@ -145,6 +145,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 					propertyResolver = resolver;
 				}
 				PropertyResolver propertyResolverToUse = propertyResolver;
+				// 把environment对象封装成的PropertySource对象加入到
 				this.propertySources.addLast(
 					new PropertySource<>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
 						@Override
@@ -156,8 +157,10 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				// 加载本地配置文件中的属性值包装成properties对象，最终包装成PropertySource对象
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+				// 加入到MutablePropertySources中的list中
 				if (this.localOverride) {
 					this.propertySources.addFirst(localPropertySource);
 				}
@@ -170,6 +173,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 			}
 		}
 
+		// 重点, 重要程度5
 		processProperties(beanFactory, createPropertyResolver(this.propertySources));
 		this.appliedPropertySources = this.propertySources;
 	}
@@ -190,10 +194,13 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
 
+		// 设置占位符
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
+		// 设置分割符：
 		propertyResolver.setValueSeparator(this.valueSeparator);
 
+		// 重点是这个匿名对象@Value的依赖注入会调过来
 		StringValueResolver valueResolver = strVal -> {
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :
@@ -203,7 +210,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 			}
 			return (resolved.equals(this.nullValue) ? null : resolved);
 		};
-
+		// 核心流程，把占位符${xxx}替换为真正的值
 		doProcessProperties(beanFactoryToProcess, valueResolver);
 	}
 

@@ -115,9 +115,9 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
-		//
+		// 获取命令空间和解析类对应的Map
 		Map<String, Object> handlerMappings = getHandlerMappings();
-		Object handlerOrClassName = handlerMappings.get(namespaceUri);
+		Object handlerOrClassName = handlerMappings.get(namespaceUri); // 从map获取对应命名空间的解析类
 		if (handlerOrClassName == null) {
 			return null;
 		}
@@ -134,7 +134,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 				}
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
 				namespaceHandler.init();
-				handlerMappings.put(namespaceUri, namespaceHandler);
+				handlerMappings.put(namespaceUri, namespaceHandler); // 将map中的class转换为class对应的实例，下次获取是直接可以获取到实例，无需重复创建实例（思想优秀）
 				return namespaceHandler;
 			}
 			catch (ClassNotFoundException ex) {

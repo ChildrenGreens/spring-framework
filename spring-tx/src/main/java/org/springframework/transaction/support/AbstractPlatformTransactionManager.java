@@ -376,11 +376,14 @@ public abstract class AbstractPlatformTransactionManager
 		// Use defaults if no transaction definition given.
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
 
+		// 这里重点看，DataSourceTransactionObject拿到对象
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
 
+		// 第一次进来connectionHolder为空，所有不存在事务
 		if (isExistingTransaction(transaction)) {
 			// Existing transaction found -> check propagation behavior to find out how to behave.
+			// 如果不是第一次进来，则会走这个逻辑，重点看
 			return handleExistingTransaction(def, transaction, debugEnabled);
 		}
 
@@ -394,6 +397,7 @@ public abstract class AbstractPlatformTransactionManager
 			throw new IllegalTransactionStateException(
 					"No existing transaction found for transaction marked with propagation 'mandatory'");
 		}
+		// 第一次进来大部分会走这里
 		else if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
 				def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
@@ -427,17 +431,21 @@ public abstract class AbstractPlatformTransactionManager
 			TransactionDefinition definition, Object transaction, boolean debugEnabled)
 			throws TransactionException {
 
+		// 不允许有事务，直接异常
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NEVER) {
 			throw new IllegalTransactionStateException(
 					"Existing transaction found for transaction marked with propagation 'never'");
 		}
 
+		// 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起
 		if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NOT_SUPPORTED) {
 			if (debugEnabled) {
 				logger.debug("Suspending current transaction");
 			}
+			//挂起当前事务
 			Object suspendedResources = suspend(transaction);
 			boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
+			//修改事务状态信息，把事务的一些信息存储到当前线程中，ThreadLocal中
 			return prepareTransactionStatus(
 					definition, null, false, newSynchronization, debugEnabled, suspendedResources);
 		}
@@ -447,6 +455,7 @@ public abstract class AbstractPlatformTransactionManager
 				logger.debug("Suspending current transaction, creating new transaction with name [" +
 						definition.getName() + "]");
 			}
+			//挂起
 			SuspendedResourcesHolder suspendedResources = suspend(transaction);
 			try {
 				return startTransaction(definition, transaction, false, debugEnabled, suspendedResources);
@@ -466,14 +475,17 @@ public abstract class AbstractPlatformTransactionManager
 			if (debugEnabled) {
 				logger.debug("Creating nested transaction with name [" + definition.getName() + "]");
 			}
+			//默认是可以嵌套事务的
 			if (useSavepointForNestedTransaction()) {
 				// Create savepoint within existing Spring-managed transaction,
 				// through the SavepointManager API implemented by TransactionStatus.
 				// Usually uses JDBC savepoints. Never activates Spring synchronization.
+				//这里的newTransaction 为 false
 				DefaultTransactionStatus status = newTransactionStatus(
 						definition, transaction, false, false, true, debugEnabled, null);
 				this.transactionExecutionListeners.forEach(listener -> listener.beforeBegin(status));
 				try {
+					//创建回滚点
 					status.createAndHoldSavepoint();
 				}
 				catch (RuntimeException | Error ex) {
@@ -515,6 +527,7 @@ public abstract class AbstractPlatformTransactionManager
 			}
 		}
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+		//如果第二次进来还是PROPAGATION_REQUIRED，走这里，newTransaction为false
 		return prepareTransactionStatus(definition, transaction, false, newSynchronization, debugEnabled, null);
 	}
 
@@ -525,16 +538,19 @@ public abstract class AbstractPlatformTransactionManager
 			boolean nested, boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
 
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+		// 创建一个新的事务状态，注意这里的newTransaction属性为true了
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, nested, debugEnabled, suspendedResources);
 		this.transactionExecutionListeners.forEach(listener -> listener.beforeBegin(status));
 		try {
+			// 开启事务，重点看看DataSourceTransactionObject
 			doBegin(transaction, definition);
 		}
 		catch (RuntimeException | Error ex) {
 			this.transactionExecutionListeners.forEach(listener -> listener.afterBegin(status, ex));
 			throw ex;
 		}
+		// 开启事务后，改变事务状态
 		prepareSynchronization(status, definition);
 		this.transactionExecutionListeners.forEach(listener -> listener.afterBegin(status, null));
 		return status;
@@ -662,8 +678,10 @@ public abstract class AbstractPlatformTransactionManager
 			throws TransactionException {
 
 		if (resourcesHolder != null) {
+			//获取挂起事务
 			Object suspendedResources = resourcesHolder.suspendedResources;
 			if (suspendedResources != null) {
+				//恢复
 				doResume(transaction, suspendedResources);
 			}
 			List<TransactionSynchronization> suspendedSynchronizations = resourcesHolder.suspendedSynchronizations;
@@ -755,6 +773,7 @@ public abstract class AbstractPlatformTransactionManager
 			return;
 		}
 
+		//执行事务提交
 		processCommit(defStatus);
 	}
 
@@ -772,10 +791,12 @@ public abstract class AbstractPlatformTransactionManager
 			try {
 				boolean unexpectedRollback = false;
 				prepareForCommit(status);
+				//调用beforeCommit方法，事务提交之前做业务处理
 				triggerBeforeCommit(status);
 				triggerBeforeCompletion(status);
 				beforeCompletionInvoked = true;
 
+				//如果有回滚点
 				if (status.hasSavepoint()) {
 					if (status.isDebug()) {
 						logger.debug("Releasing transaction savepoint");
@@ -785,6 +806,7 @@ public abstract class AbstractPlatformTransactionManager
 					commitListenerInvoked = true;
 					status.releaseHeldSavepoint();
 				}
+				//如果是新事务，则提交事务
 				else if (status.isNewTransaction()) {
 					if (status.isDebug()) {
 						logger.debug("Initiating transaction commit");
@@ -833,6 +855,7 @@ public abstract class AbstractPlatformTransactionManager
 			// Trigger afterCommit callbacks, with an exception thrown there
 			// propagated to callers but the transaction still considered as committed.
 			try {
+				//触发afterCommit方法，事务提交后做业务处理
 				triggerAfterCommit(status);
 			}
 			finally {
@@ -844,6 +867,7 @@ public abstract class AbstractPlatformTransactionManager
 
 		}
 		finally {
+			//处理挂起事务，在这里恢复绑定关系
 			cleanupAfterCompletion(status);
 		}
 	}
@@ -880,6 +904,7 @@ public abstract class AbstractPlatformTransactionManager
 			try {
 				triggerBeforeCompletion(status);
 
+				// 如果有回滚点，如果是嵌套事务
 				if (status.hasSavepoint()) {
 					if (status.isDebug()) {
 						logger.debug("Rolling back transaction to savepoint");
@@ -1058,14 +1083,17 @@ public abstract class AbstractPlatformTransactionManager
 		if (status.isNewSynchronization()) {
 			TransactionSynchronizationManager.clear();
 		}
+		//释放连接
 		if (status.isNewTransaction()) {
 			doCleanupAfterCompletion(status.getTransaction());
 		}
+		//如果存在挂起的事务
 		if (status.getSuspendedResources() != null) {
 			if (status.isDebug()) {
 				logger.debug("Resuming suspended transaction after completion of inner transaction");
 			}
 			Object transaction = (status.hasTransaction() ? status.getTransaction() : null);
+			//恢复绑定关系
 			resume(transaction, (SuspendedResourcesHolder) status.getSuspendedResources());
 		}
 	}

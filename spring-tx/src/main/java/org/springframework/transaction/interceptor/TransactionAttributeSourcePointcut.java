@@ -52,6 +52,7 @@ final class TransactionAttributeSourcePointcut extends StaticMethodMatcherPointc
 
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		// 只要方法上面能拿到事务属性就放回true，就生成代理
 		return (this.transactionAttributeSource == null ||
 				this.transactionAttributeSource.getTransactionAttribute(method, targetClass) != null);
 	}
@@ -77,6 +78,7 @@ final class TransactionAttributeSourcePointcut extends StaticMethodMatcherPointc
 	 * {@link ClassFilter} that delegates to {@link TransactionAttributeSource#isCandidateClass}
 	 * for filtering classes whose methods are not worth searching to begin with.
 	 */
+	// 方法级别的校验，没有起到作用（然并软）
 	private final class TransactionAttributeSourceClassFilter implements ClassFilter {
 
 		@Override

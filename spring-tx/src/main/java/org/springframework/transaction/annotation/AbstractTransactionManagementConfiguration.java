@@ -64,6 +64,7 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 		}
 	}
 
+	// 获取所有实现TransactionManagementConfigurer接口的bean实例（从下面逻辑看只能有一个实例）
 	@Autowired(required = false)
 	void setConfigurers(Collection<TransactionManagementConfigurer> configurers) {
 		if (CollectionUtils.isEmpty(configurers)) {
@@ -73,6 +74,7 @@ public abstract class AbstractTransactionManagementConfiguration implements Impo
 			throw new IllegalStateException("Only one TransactionManagementConfigurer may exist");
 		}
 		TransactionManagementConfigurer configurer = configurers.iterator().next();
+		// 调用TransactionManagementConfigurer的annotationDrivenTransactionManager实现方法，获取到txManager对象
 		this.txManager = configurer.annotationDrivenTransactionManager();
 	}
 

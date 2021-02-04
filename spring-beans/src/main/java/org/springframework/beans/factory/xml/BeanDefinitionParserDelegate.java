@@ -324,21 +324,21 @@ public class BeanDefinitionParserDelegate {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to false.
 			lazyInit = (parentDefaults != null ? parentDefaults.getLazyInit() : FALSE_VALUE);
 		}
-		defaults.setLazyInit(lazyInit);
+		defaults.setLazyInit(lazyInit);// 设置lazy模式
 
 		String merge = root.getAttribute(DEFAULT_MERGE_ATTRIBUTE);
 		if (isDefaultValue(merge)) {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to false.
 			merge = (parentDefaults != null ? parentDefaults.getMerge() : FALSE_VALUE);
 		}
-		defaults.setMerge(merge);
+		defaults.setMerge(merge); // 设置merge属性
 
 		String autowire = root.getAttribute(DEFAULT_AUTOWIRE_ATTRIBUTE);
 		if (isDefaultValue(autowire)) {
 			// Potentially inherited from outer <beans> sections, otherwise falling back to 'no'.
 			autowire = (parentDefaults != null ? parentDefaults.getAutowire() : AUTOWIRE_NO_VALUE);
 		}
-		defaults.setAutowire(autowire);
+		defaults.setAutowire(autowire); // 设置autowire属性
 
 		if (root.hasAttribute(DEFAULT_AUTOWIRE_CANDIDATES_ATTRIBUTE)) {
 			defaults.setAutowireCandidates(root.getAttribute(DEFAULT_AUTOWIRE_CANDIDATES_ATTRIBUTE));
@@ -347,17 +347,17 @@ public class BeanDefinitionParserDelegate {
 			defaults.setAutowireCandidates(parentDefaults.getAutowireCandidates());
 		}
 
-		if (root.hasAttribute(DEFAULT_INIT_METHOD_ATTRIBUTE)) {
+		if (root.hasAttribute(DEFAULT_INIT_METHOD_ATTRIBUTE)) { // 设置init-method属性
 			defaults.setInitMethod(root.getAttribute(DEFAULT_INIT_METHOD_ATTRIBUTE));
 		}
 		else if (parentDefaults != null) {
 			defaults.setInitMethod(parentDefaults.getInitMethod());
 		}
 
-		if (root.hasAttribute(DEFAULT_DESTROY_METHOD_ATTRIBUTE)) {
+		if (root.hasAttribute(DEFAULT_DESTROY_METHOD_ATTRIBUTE)) { // 设置destroy-method属性
 			defaults.setDestroyMethod(root.getAttribute(DEFAULT_DESTROY_METHOD_ATTRIBUTE));
 		}
-		else if (parentDefaults != null) {
+		else if (parentDefaults != null) { // 判断父类中
 			defaults.setDestroyMethod(parentDefaults.getDestroyMethod());
 		}
 
@@ -414,6 +414,7 @@ public class BeanDefinitionParserDelegate {
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
 		// 解析bean标签中id元素
 		String id = ele.getAttribute(ID_ATTRIBUTE);
+		// 解析bean标签中name属性
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
 		List<String> aliases = new ArrayList<>();
@@ -435,6 +436,7 @@ public class BeanDefinitionParserDelegate {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
+		// 创建BeanDefinition对象
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -500,9 +502,10 @@ public class BeanDefinitionParserDelegate {
 	@Nullable
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
-
+		// ParseState栈结构，用户跟踪当前解析的位置
 		this.parseState.push(new BeanEntry(beanName));
 
+		// 设置bean的class属性，也就是对应的类的包
 		String className = null;
 		if (ele.hasAttribute(CLASS_ATTRIBUTE)) {
 			className = ele.getAttribute(CLASS_ATTRIBUTE).trim();
@@ -518,7 +521,7 @@ public class BeanDefinitionParserDelegate {
 
 			// 解析bean中属性，并设置到BeanDefinition对象中
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
-			// 解析bean中所有的description子标签，用StringBuilder拼接设置到BeanDefinition中description属性中
+			// 解析bean中的description子标签，用StringBuilder拼接设置到BeanDefinition中description属性中
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 			// 解析bean中的meta子标签，并设置到BeanDefinition对象中
 			parseMetaElements(ele, bd);
@@ -1392,7 +1395,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
-		String namespaceUri = getNamespaceURI(ele);
+		String namespaceUri = getNamespaceURI(ele); // 获取自定义标签的命令空间URI
 		if (namespaceUri == null) {
 			return null;
 		}

@@ -49,20 +49,25 @@ import org.springframework.util.ClassUtils;
  */
 final class ConfigurationClass {
 
+	// 类的基本元信息，包含注解，类，方法
 	private final AnnotationMetadata metadata;
 
+	// 流的封装
 	private final Resource resource;
 
 	@Nullable
 	private String beanName;
 
+	// 内部类的所对应的外部类
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
+	// @bean方法的容器
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
 
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
 			new LinkedHashMap<>();
 
+	// 实现接口
 	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars =
 			new LinkedHashMap<>();
 

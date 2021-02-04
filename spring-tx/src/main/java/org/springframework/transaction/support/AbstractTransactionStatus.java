@@ -154,6 +154,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 					"Cannot roll back to savepoint - no savepoint associated with current transaction");
 		}
 		getSavepointManager().rollbackToSavepoint(savepoint);
+		// 清理掉connection中的回滚点
 		getSavepointManager().releaseSavepoint(savepoint);
 		setSavepoint(null);
 	}
@@ -167,7 +168,9 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 			throw new TransactionUsageException(
 					"Cannot release savepoint - no savepoint associated with current transaction");
 		}
+		// 清理Connection中的回滚点
 		getSavepointManager().releaseSavepoint(savepoint);
+		// 清理Status中的回滚点
 		setSavepoint(null);
 	}
 
