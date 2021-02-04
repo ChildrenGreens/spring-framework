@@ -77,7 +77,7 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 					}
 				}
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, id, aliases);
-				registerBeanDefinition(holder, parserContext.getRegistry());
+				registerBeanDefinition(holder, parserContext.getRegistry()); // 注册beanDefinition
 				if (shouldFireEvents()) {
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);

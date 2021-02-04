@@ -1887,15 +1887,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
+		//如果实例不是FactoryBean类型的
 		if (!(beanInstance instanceof FactoryBean<?> factoryBean)) {
 			return beanInstance;
 		}
 
+		//如果代码能走下来，则说明 beanName不是以&开头，并且beanInstance是FactoryBean类型的
 		Object object = null;
 		if (mbd != null) {
 			mbd.isFactoryBean = true;
 		}
 		else {
+			//从缓存里面拿FactoryBean类型的实例
 			object = getCachedObjectForFactoryBean(beanName);
 		}
 		if (object == null) {
@@ -1905,6 +1908,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				mbd = getMergedLocalBeanDefinition(beanName);
 			}
 			boolean synthetic = (mbd != null && mbd.isSynthetic());
+			//重点看
 			object = getObjectFromFactoryBean(factoryBean, beanName, !synthetic);
 		}
 		return object;
@@ -1954,6 +1958,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Register a DisposableBean implementation that performs all destruction
 				// work for the given bean: DestructionAwareBeanPostProcessors,
 				// DisposableBean interface, custom destroy method.
+				// 对象销毁是JVM，bean销毁就是在bean销毁前做一些事情
 				registerDisposableBean(beanName, new DisposableBeanAdapter(
 						bean, beanName, mbd, getBeanPostProcessorCache().destructionAware));
 			}

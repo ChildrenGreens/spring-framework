@@ -66,6 +66,7 @@ class ComponentScanAnnotationParser {
 
 
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, String declaringClass) {
+		// 创建扫描器
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
@@ -85,6 +86,7 @@ class ComponentScanAnnotationParser {
 
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 
+		// 扫描自定义注解(加入)
 		for (AnnotationAttributes includeFilterAttributes : componentScan.getAnnotationArray("includeFilters")) {
 			List<TypeFilter> typeFilters = TypeFilterUtils.createTypeFiltersFor(includeFilterAttributes, this.environment,
 					this.resourceLoader, this.registry);
@@ -92,6 +94,7 @@ class ComponentScanAnnotationParser {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
+		// 扫描自定义注解(排除)
 		for (AnnotationAttributes excludeFilterAttributes : componentScan.getAnnotationArray("excludeFilters")) {
 			List<TypeFilter> typeFilters = TypeFilterUtils.createTypeFiltersFor(excludeFilterAttributes, this.environment,
 				this.resourceLoader, this.registry);
@@ -125,6 +128,7 @@ class ComponentScanAnnotationParser {
 				return declaringClass.equals(className);
 			}
 		});
+		// 核心流程，扫描所有的basePackages
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 

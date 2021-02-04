@@ -81,9 +81,11 @@ public class BeanDefinitionVisitor {
 		visitFactoryBeanName(beanDefinition);
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
+		// 如果
 		if (beanDefinition.hasPropertyValues()) {
 			visitPropertyValues(beanDefinition.getPropertyValues());
 		}
+		// 构造函数占位符
 		if (beanDefinition.hasConstructorArgumentValues()) {
 			ConstructorArgumentValues cas = beanDefinition.getConstructorArgumentValues();
 			visitIndexedArgumentValues(cas.getIndexedArgumentValues());
@@ -141,6 +143,8 @@ public class BeanDefinitionVisitor {
 		}
 	}
 
+
+	// 看
 	protected void visitPropertyValues(MutablePropertyValues pvs) {
 		PropertyValue[] pvArray = pvs.getPropertyValues();
 		for (PropertyValue pv : pvArray) {

@@ -130,6 +130,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 			try {
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
+					//调用getObject方法
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (for example, because of circular reference processing triggered by custom getBean calls)
@@ -160,6 +161,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 							}
 						}
 						if (containsSingleton(beanName)) {
+							//把实例缓存到factoryBeanObjectCache map中，这个是单独缓存FactoryBean类型实例的map
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}
@@ -197,6 +199,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	private Object doGetObjectFromFactoryBean(FactoryBean<?> factory, String beanName) throws BeanCreationException {
 		Object object;
 		try {
+			//调用重写FactoryBean的类的getObject方法
 			object = factory.getObject();
 		}
 		catch (FactoryBeanNotInitializedException ex) {

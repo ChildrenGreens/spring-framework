@@ -274,15 +274,19 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
+			// 扫描到有注解的类，并封装成BeanDefinition对象
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
+				// 是否单例模式
 				candidate.setScope(scopeMetadata.getScopeName());
+				// 生成beanName
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				if (candidate instanceof AbstractBeanDefinition abstractBeanDefinition) {
 					postProcessBeanDefinition(abstractBeanDefinition, beanName);
 				}
-				if (candidate instanceof AnnotatedBeanDefinition annotatedBeanDefinition) { // 注解填充
+				// 从metadata获取数据，并注解填充
+				if (candidate instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations(annotatedBeanDefinition);
 				}
 				if (checkCandidate(beanName, candidate)) {
@@ -304,6 +308,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param beanName the generated bean name for the given bean
 	 */
 	protected void postProcessBeanDefinition(AbstractBeanDefinition beanDefinition, String beanName) {
+		// 设置bd的默认值
 		beanDefinition.applyDefaults(this.beanDefinitionDefaults);
 		if (this.autowireCandidatePatterns != null) {
 			beanDefinition.setAutowireCandidate(PatternMatchUtils.simpleMatch(this.autowireCandidatePatterns, beanName));
