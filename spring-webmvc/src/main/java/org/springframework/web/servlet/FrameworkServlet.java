@@ -534,6 +534,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
+			//初始化springmvc上下文
 			this.webApplicationContext = initWebApplicationContext();
 			initFrameworkServlet();
 		}
@@ -565,6 +566,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		//从servlet下午文中获取spring的上下文对象
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
@@ -572,14 +574,17 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
+			// SpringMvc容器
 			if (wac instanceof ConfigurableWebApplicationContext cwac && !cwac.isActive()) {
 				// The context has not yet been refreshed -> provide services such as
 				// setting the parent context, setting the application context id, etc
 				if (cwac.getParent() == null) {
 					// The context instance was injected without an explicit parent -> set
 					// the root application context (if any; may be null) as the parent
+					// 把spring的上下文设置成springmvc上下文的父
 					cwac.setParent(rootContext);
 				}
+				// 启动容器（调用mvc的refresh方法，完成启动）
 				configureAndRefreshWebApplicationContext(cwac);
 			}
 		}
@@ -703,6 +708,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		// 完成mvc容器的启动
 		wac.refresh();
 	}
 
