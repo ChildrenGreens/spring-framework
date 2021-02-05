@@ -865,6 +865,7 @@ public class BeanDefinitionParserDelegate {
 			}
 			// 解析属性元素中的value值
 			Object val = parsePropertyValue(ele, bd, propertyName);
+			// 将属性key和value封装成PropertyValue对象
 			PropertyValue pv = new PropertyValue(propertyName, val);
 			parseMetaElements(ele, pv);
 			pv.setSource(extractSource(ele));
@@ -1395,15 +1396,18 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
-		String namespaceUri = getNamespaceURI(ele); // 获取自定义标签的命令空间URI
+		// 获取自定义标签的命令空间URI
+		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+		// 根据命令空间URI获取到NamespaceHandler，重要
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		// 核心流程
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 

@@ -455,7 +455,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			// 生成扫描路径的正则表达式，例如：classpath*:com/enjoy/jack/**/*.class 简单一点：扫描所有class
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
-			// 递归寻找文件
+			// 递归寻找.class文件
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -469,8 +469,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 					logger.trace("Scanning " + resource);
 				}
 				try {
-					MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource); //包装了类的基本信息对象, 不推荐阅读
-					if (isCandidateComponent(metadataReader)) { // 判断是否有注解，@Component注解
+					//包装了类的基本信息对象, 不推荐阅读
+					MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+					// 判断是否有注解，@Component注解
+					if (isCandidateComponent(metadataReader)) {
 						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 						sbd.setSource(resource);
 						if (isCandidateComponent(sbd)) {

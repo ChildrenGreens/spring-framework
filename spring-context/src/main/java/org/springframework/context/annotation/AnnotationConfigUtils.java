@@ -156,13 +156,26 @@ public abstract class AnnotationConfigUtils {
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
+		/*
+		* 1. ConfigurationClassPostProcessor是一个BeanFactory的后置处理器，
+		* 因此它的主要功能是参与BeanFactory的建造，在这个类中，会解析加了@Configuration的配置类，
+		* 还会解析@ComponentScan、@ComponentScans注解扫描的包，以及解析@Import等注解。
+		*
+		* 2. ConfigurationClassPostProcessor 实现了 BeanDefinitionRegistryPostProcessor 接口，
+		* 而 BeanDefinitionRegistryPostProcessor 接口继承了 BeanFactoryPostProcessor 接口，
+		* 所以 ConfigurationClassPostProcessor 中需要重写 postProcessBeanDefinitionRegistry() 方法和 postProcessBeanFactory() 方法。
+		* 而ConfigurationClassPostProcessor类的作用就是通过这两个方法去实现的。
+		* */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
-			// 重点类 org.springframework.context.annotation.internalConfigurationAnnotationProcessor
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		/*
+		* AutowiredAnnotationBeanPostProcessor
+		* 解析@Autowired和@Value注解
+		* */
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
@@ -171,6 +184,10 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		// Check for Jakarta Annotations support, and if present add the CommonAnnotationBeanPostProcessor.
+		/*
+		 * CommonAnnotationBeanPostProcessor
+		 * 解析@Resource注解
+		 * */
 		if ((jakartaAnnotationsPresent || jsr250Present) &&
 				!registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);

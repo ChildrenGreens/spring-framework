@@ -332,6 +332,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			// Search the class path next.
 			if (getPathMatcher().isPattern(locationPatternWithoutPrefix)) {
 				// a class path resource pattern
+				// 主要方法
 				Collections.addAll(resources, findPathMatchingResources(locationPattern));
 			}
 			else {
@@ -583,7 +584,8 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see org.springframework.util.PathMatcher
 	 */
 	protected Resource[] findPathMatchingResources(String locationPattern) throws IOException {
-		String rootDirPath = determineRootDir(locationPattern); // 获取扫描包的根路径
+		// 获取扫描包的根路径
+		String rootDirPath = determineRootDir(locationPattern);
 		String subPattern = locationPattern.substring(rootDirPath.length());
 		Resource[] rootDirResources = getResources(rootDirPath);
 		Set<Resource> result = new LinkedHashSet<>(64);
@@ -604,7 +606,8 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 				result.addAll(doFindPathMatchingJarResources(rootDirResource, rootDirUrl, subPattern));
 			}
 			else {
-				result.addAll(doFindPathMatchingFileResources(rootDirResource, subPattern)); // 递归寻找.class文件
+				// 递归寻找.class文件
+				result.addAll(doFindPathMatchingFileResources(rootDirResource, subPattern));
 			}
 		}
 		if (logger.isTraceEnabled()) {
