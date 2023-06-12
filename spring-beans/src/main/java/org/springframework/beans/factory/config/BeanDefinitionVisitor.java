@@ -81,7 +81,7 @@ public class BeanDefinitionVisitor {
 		visitFactoryBeanName(beanDefinition);
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
-		// 如果
+		// 如果bd存在属性值，把占位符替换成真正的属性值
 		if (beanDefinition.hasPropertyValues()) {
 			visitPropertyValues(beanDefinition.getPropertyValues());
 		}
@@ -148,6 +148,7 @@ public class BeanDefinitionVisitor {
 	protected void visitPropertyValues(MutablePropertyValues pvs) {
 		PropertyValue[] pvArray = pvs.getPropertyValues();
 		for (PropertyValue pv : pvArray) {
+			// 解析
 			Object newVal = resolveValue(pv.getValue());
 			if (!ObjectUtils.nullSafeEquals(newVal, pv.getValue())) {
 				pvs.add(pv.getName(), newVal);
