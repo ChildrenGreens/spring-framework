@@ -59,7 +59,8 @@ public abstract class BeanDefinitionReaderUtils {
 
 		// 创建bd
 		GenericBeanDefinition bd = new GenericBeanDefinition();
-		bd.setParentName(parentName); // 设置bd的parentName属性
+		// 设置bd的parentName属性
+		bd.setParentName(parentName);
 		if (className != null) {
 			if (classLoader != null) {
 				bd.setBeanClass(ClassUtils.forName(className, classLoader));
