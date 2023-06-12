@@ -50,21 +50,6 @@ public class CacheInterceptor extends CacheAspectSupport implements MethodInterc
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
 
-
-		/*
-		CacheOperationInvoker aopAllianceInvoker = new CacheOperationInvoker() {
-			@Override
-			public Object invoke() throws ThrowableWrapper {
-
-				try {
-					return invocation.proceed();
-				} catch (Throwable ex) {
-					throw new CacheOperationInvoker.ThrowableWrapper(ex);
-				}
-			}
-		};*/
-
-
 		CacheOperationInvoker aopAllianceInvoker = () -> {
 			try {
 				return invocation.proceed();

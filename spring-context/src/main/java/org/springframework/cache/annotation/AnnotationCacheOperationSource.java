@@ -128,15 +128,6 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	@Override
 	@Nullable
 	protected Collection<CacheOperation> findCacheOperations(Method method) {
-
-		/*
-		return determineCacheOperations(new CacheOperationProvider() {
-			@Override
-			public Collection<CacheOperation> getCacheOperations(CacheAnnotationParser parser) {
-				return parser.parseCacheAnnotations(method);
-			}
-		});
-		* */
 		return determineCacheOperations(parser -> parser.parseCacheAnnotations(method));
 	}
 
