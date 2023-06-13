@@ -512,7 +512,6 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		// 调用和封装metadata方法一个方法，直接从缓存中取到值
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
-			//
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
