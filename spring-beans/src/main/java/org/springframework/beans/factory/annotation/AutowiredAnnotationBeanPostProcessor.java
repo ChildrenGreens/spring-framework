@@ -368,14 +368,17 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		checkLookupMethods(beanClass, beanName);
 
 		// Quick check on the concurrent map first, with minimal locking.
+		// 缓存击穿
 		Constructor<?>[] candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 		if (candidateConstructors == null) {
 			// Fully synchronized resolution now...
 			synchronized (this.candidateConstructorsCache) {
+				// 先从缓存中获取
 				candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 				if (candidateConstructors == null) {
 					Constructor<?>[] rawCandidates;
 					try {
+						// 获取所有的构造方法
 						rawCandidates = beanClass.getDeclaredConstructors();
 					}
 					catch (Throwable ex) {
@@ -395,7 +398,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						else if (primaryConstructor != null) {
 							continue;
 						}
-						MergedAnnotation<?> ann = findAutowiredAnnotation(candidate); // 判断是否有注解
+						// 判断是否有注解
+						MergedAnnotation<?> ann = findAutowiredAnnotation(candidate);
 						if (ann == null) {
 							Class<?> userClass = ClassUtils.getUserClass(beanClass);
 							if (userClass != beanClass) {
@@ -447,6 +451,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 						}
 						candidateConstructors = candidates.toArray(EMPTY_CONSTRUCTOR_ARRAY);
 					}
+					// 没有autowired注解，且只有一个构造函数
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
@@ -569,6 +574,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	}
 
 	private InjectionMetadata buildAutowiringMetadata(Class<?> clazz) {
+		// 判断注解中是否有@Autowired或@Value注解中的其中一个
 		if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
 			return InjectionMetadata.EMPTY;
 		}
@@ -604,7 +610,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			});
 
 			final List<InjectionMetadata.InjectedElement> methodElements = new ArrayList<>();
-			// 方法同上，仔细看了
+			// 方法同上，不仔细看了
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -647,7 +653,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 
 	@Nullable
 	private MergedAnnotation<?> findAutowiredAnnotation(AccessibleObject ao) {
-		// 找到注解集合
+		// 找到属性或方法上的注解集合
 		MergedAnnotations annotations = MergedAnnotations.from(ao);
 
 		// 判断注解容器中是否有Autowired和Value注解中的其中一个,有就返回注解

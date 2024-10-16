@@ -1561,6 +1561,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				return result;
 			}
 		}
+		// 走这里
 		return doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 	}
 
@@ -1672,7 +1673,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (autowiredBeanNames != null) {
 				autowiredBeanNames.add(autowiredBeanName);
 			}
-			if (instanceCandidate instanceof Class) { // 实例化参数的bean
+			if (instanceCandidate instanceof Class) {
+				// 实例化参数的bean
 				instanceCandidate = descriptor.resolveCandidate(autowiredBeanName, type, this);
 			}
 			return resolveInstance(instanceCandidate, descriptor, type, autowiredBeanName);

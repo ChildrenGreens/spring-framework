@@ -1005,8 +1005,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
 
+		// 获取国际化上下文
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
+
 
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
@@ -1017,6 +1019,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// 核心方法
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
@@ -1080,6 +1083,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			LocaleContextHolder.setLocaleContext(localeContext, this.threadContextInheritable);
 		}
 		if (requestAttributes != null) {
+			// 将 ServletRequestAttributes对象放入ThreadLocal
 			RequestContextHolder.setRequestAttributes(requestAttributes, this.threadContextInheritable);
 		}
 	}
@@ -1200,6 +1204,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		@Override
 		public void onApplicationEvent(ContextRefreshedEvent event) {
+			// 容器启动完成后触发
 			FrameworkServlet.this.onApplicationEvent(event);
 		}
 	}
