@@ -399,33 +399,32 @@ class ConstructorResolver {
 	 * method, or {@code null} if none (-> use constructor argument values from bean definition)
 	 * @return a BeanWrapper for the new instance
 	 */
-	/**
-	 * 使用factory-method实例化bean的两种方式
-	 *
-	 * 方法一：
-	 * 		通过XML配置bean标签里面的factory-bean和factory-method属性，把bean实例化交给另外一个类的非静态方法（即factory-method所指向的方法）
-	 * 	大致流程
-	 * 		1.通过当前beanDefinition对象获取到factoryBeanName属性（在前面生成bd,并完善bd属性时设置值的）
-	 * 		2.判断factoryBeanName是否为null()<岔路口：1. factoryBeanName初始化，2.factoryClass初始化>
-	 * 		3.根据factoryBeanName从beanFactory中获取到bean标签中factory-bean对应的类的对象（解释：因为你将这个类的实例化交给了另外一个类的方法，所以一点要获取到被委托类的对象）
-	 * 		3.将获取到被委托的类对象赋值给factoryClass指针（方便后续流程统一处理）,然后从factoryClass获取所有的Method,生成数组
-	 * 		4.遍历数组中的方法，条件（非静态方法 && bean标签中的方法所指方法就是这个方法），并加入到candidates候选列表中
-	 * 		5.判断方法，找到factoryMethod
-	 * 		6.反射调用factoryMethod方法在堆内存里，生成object对象，然后包装成BeanWrapperImpl对象
-	 *
-	 *
-	 * 方法二：
-	 * 		通过调用当前bean标签设置的factory-method方法（bean标签对应本类中静态方法），把bean实例化交给本类实现
-	 * 	大致流程（与方法一区别不大，下面主要将区别之处）
-	 * 		1.判断beanDefinition中是否有beanClass属性，如果没有就抛出异常（也就是bean标签中是否有class属性）
-	 * 		2.因为将本类作为实例化对象类，所以会将beanClass赋值给factoryClass
-	 * 		3.会将isStatic局部变量赋值为true，因为本类factory-method方法要求必须是静态方法
-	 *
-	 */
 	@SuppressWarnings("NullAway")
 	public BeanWrapper instantiateUsingFactoryMethod(
 			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
-
+		/**
+		 * 使用factory-method实例化bean的两种方式
+		 *
+		 * 方法一：
+		 * 		通过XML配置bean标签里面的factory-bean和factory-method属性，把bean实例化交给另外一个类的非静态方法（即factory-method所指向的方法）
+		 * 	大致流程
+		 * 		1.通过当前beanDefinition对象获取到factoryBeanName属性（在前面生成bd,并完善bd属性时设置值的）
+		 * 		2.判断factoryBeanName是否为null() 1. factoryBeanName初始化，2.factoryClass初始化
+		 * 		3.根据factoryBeanName从beanFactory中获取到bean标签中factory-bean对应的类的对象（解释：因为你将这个类的实例化交给了另外一个类的方法，所以一点要获取到被委托类的对象）
+		 * 		3.将获取到被委托的类对象赋值给factoryClass指针（方便后续流程统一处理）,然后从factoryClass获取所有的Method,生成数组
+		 * 		4.遍历数组中的方法，条件（非静态方法 && bean标签中的方法所指方法就是这个方法），并加入到candidates候选列表中
+		 * 		5.判断方法，找到factoryMethod
+		 * 		6.反射调用factoryMethod方法在堆内存里，生成object对象，然后包装成BeanWrapperImpl对象
+		 *
+		 *
+		 * 方法二：
+		 * 		通过调用当前bean标签设置的factory-method方法（bean标签对应本类中静态方法），把bean实例化交给本类实现
+		 * 	大致流程（与方法一区别不大，下面主要将区别之处）
+		 * 		1.判断beanDefinition中是否有beanClass属性，如果没有就抛出异常（也就是bean标签中是否有class属性）
+		 * 		2.因为将本类作为实例化对象类，所以会将beanClass赋值给factoryClass
+		 * 		3.会将isStatic局部变量赋值为true，因为本类factory-method方法要求必须是静态方法
+		 *
+		 */
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
 
