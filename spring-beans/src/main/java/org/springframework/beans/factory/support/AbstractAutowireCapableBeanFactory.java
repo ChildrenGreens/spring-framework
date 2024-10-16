@@ -594,7 +594,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				try {
 					// CommonAnnotationBeanPostProcessor 支持了 @PostConstruct, @PreDestory, @Resource
 					// AutowiredAnnotationBeanPostProcessor 支持了 @Autowired, @Value注解
-					// BeanPostProcessor接口的典型运用，这礼要理解这个接口
+					// BeanPostProcessor接口的典型运用，这里要理解这个接口
 					// 对类中注解属性的装配过程
 					// 重要程度5，必须看
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
@@ -1223,6 +1223,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 1. <bean>标签里面配置factory-method属性，factory-Method调用的两种方式（1. 另外一个类中有非静态方法 2. 在beanClass这个类中的静态方法调用）
 		 * 2. 方法上有@Bean注解
 		 */
+		/*
+		 * 如果有FactoryMethodName属性
+		 * 1. <bean>标签里面配置factory-method属性
+		 * (
+		 * factory-Method的两种模式：
+		 * 另一个类中非静态方法
+		 * beanClass这个类中的静态方法
+		 * )
+		 * 2. 方法上有@Bean注解
+		 */
 		if (mbd.getFactoryMethodName() != null) {
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
@@ -1247,7 +1257,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// autowird 注解的构造函数，重要程度5
+		// Autowired 注解的构造函数，重要程度5
 		// Candidate constructors for autowiring?
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
@@ -1262,6 +1272,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// No special handling: simply use no-arg constructor.
+		// 无参构造函数实例化
 		return instantiateBean(beanName, mbd);
 	}
 

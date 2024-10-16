@@ -154,7 +154,8 @@ class ConstructorResolver {
 					}
 				}
 			}
-			if (argsToResolve != null) {// 构造函数参数实例化
+			if (argsToResolve != null) {
+				// 构造函数参数实例化
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve);
 			}
 		}
@@ -177,6 +178,7 @@ class ConstructorResolver {
 
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
+				// 如果autowired注解实例化没有参数，会走这个方法
 				if (uniqueCandidate.getParameterCount() == 0) {
 					synchronized (mbd.constructorArgumentLock) {
 						mbd.resolvedConstructorOrFactoryMethod = uniqueCandidate;
@@ -203,7 +205,8 @@ class ConstructorResolver {
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
-			AutowireUtils.sortConstructors(candidates); // 排序所有的构造函数，默认选择参数多的
+			// 排序所有的构造函数，默认选择参数多的
+			AutowireUtils.sortConstructors(candidates);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			Deque<UnsatisfiedDependencyException> causes = null;
@@ -234,6 +237,7 @@ class ConstructorResolver {
 								}
 							}
 						}
+						// 这里会触发构造函数中参数的getBean操作，会实例化参数值
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
@@ -303,7 +307,8 @@ class ConstructorResolver {
 		}
 
 		Assert.state(argsToUse != null, "Unresolved constructor arguments");
-		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse)); // 构造函数实例化，constructorToUse构造函数，构造函数参数的值
+		// 构造函数实例化，constructorToUse构造函数，构造函数参数的值
+		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));
 		return bw;
 	}
 
@@ -312,6 +317,7 @@ class ConstructorResolver {
 
 		try {
 			InstantiationStrategy strategy = this.beanFactory.getInstantiationStrategy();
+			// 进入这个方法
 			return strategy.instantiate(mbd, beanName, this.beanFactory, constructorToUse, argsToUse);
 		}
 		catch (Throwable ex) {
@@ -495,7 +501,7 @@ class ConstructorResolver {
 			}
 			if (candidates == null) {
 				candidates = new ArrayList<>();
-				// 候选方法列表
+				// 找出类中所有的方法
 				Method[] rawCandidates = getCandidateMethods(factoryClass, mbd);
 				for (Method candidate : rawCandidates) {
 					// 遍历判断是否为factoryMethod方法，是就加入到candidates列表中
@@ -505,6 +511,7 @@ class ConstructorResolver {
 				}
 			}
 
+			// 如果候选的创建实例的方法只有一个
 			if (candidates.size() == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Method uniqueCandidate = candidates.get(0);
 				if (uniqueCandidate.getParameterCount() == 0) {
@@ -934,6 +941,7 @@ class ConstructorResolver {
 		}
 
 		try {
+			// 参数getBean走这里
 			return this.beanFactory.resolveDependency(descriptor, beanName, autowiredBeanNames, typeConverter);
 		}
 		catch (NoUniqueBeanDefinitionException ex) {

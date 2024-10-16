@@ -506,14 +506,20 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	// 完成DispatherServlet初始化工作
 	protected void initStrategies(ApplicationContext context) {
+		// 初始化文件上传解析器
 		initMultipartResolver(context);
+		// 初始化国际化解析器
 		initLocaleResolver(context);
 		initThemeResolver(context);
+		// 重点看，初始化handlerMapping(映射关系建立)
 		initHandlerMappings(context);
+		// 重点看，初始化handlerAdapter(调用具体逻辑，controller,参数解析，返回值解析)
 		initHandlerAdapters(context);
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
+		// 重点看
 		initViewResolvers(context);
 		initFlashMapManager(context);
 	}
@@ -976,6 +982,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 核心方法
 			doDispatch(request, response);
 		}
 		finally {
@@ -1051,6 +1058,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
 
+		// 异步管理
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
@@ -1058,6 +1066,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 文件上传
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
@@ -1070,6 +1079,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
+				//获取跟HandlerMethod匹配的HandlerAdapter对象
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1082,11 +1092,13 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				//前置过滤器，如果为false则直接返回
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				//调用到Controller具体方法，核心方法调用，重点看看
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1094,6 +1106,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				//中置过滤器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1104,6 +1117,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new ServletException("Handler dispatch failed: " + err, err);
 			}
+			//视图渲染
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {

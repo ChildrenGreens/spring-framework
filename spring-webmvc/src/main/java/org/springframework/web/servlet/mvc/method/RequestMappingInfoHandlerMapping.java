@@ -108,6 +108,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMatchingMapping(RequestMappingInfo info, HttpServletRequest request) {
+		// 判断请求是否与注解配置的属性是否匹配
 		return info.getMatchingCondition(request);
 	}
 

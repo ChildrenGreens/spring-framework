@@ -303,6 +303,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					beanCreation.tag("beanType", requiredType::toString);
 				}
 				// 父子BeanDefinition合并
+				// 把父容器的属性合并到子容器中
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				checkMergedBeanDefinition(mbd, beanName, args);
 
@@ -341,6 +342,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// 着重看，大部分都是单例的情况
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+
+
+					/*
+					sharedInstance = getSingleton(beanName, new ObjectFactory<Object>() {
+						@Override
+						public Object getObject() throws BeansException {
+							return createBean(beanName, mbd, args);
+						}
+					});*/
+
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
