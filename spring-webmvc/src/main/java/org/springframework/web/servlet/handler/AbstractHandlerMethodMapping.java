@@ -411,6 +411,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		List<Match> matches = new ArrayList<>();
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath);
 		if (directPathMatches != null) {
+			// 匹配过程，是否符合 RequestMappingInfo 里的属性值
 			addMatchingMappings(directPathMatches, matches, request);
 		}
 		if (matches.isEmpty()) {

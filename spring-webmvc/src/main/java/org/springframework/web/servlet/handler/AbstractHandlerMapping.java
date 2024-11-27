@@ -626,16 +626,22 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see #getAdaptedInterceptors()
 	 */
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		// 如果没有获得则创建一个 HandlerExecutionChain
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain handlerExecutionChain ?
 				handlerExecutionChain : new HandlerExecutionChain(handler));
 
+		// 在 HandlerExecutionChain 中添加拦截器
+		// 遍历 SpringMVC 容器的所有拦截器
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
+			// 判断拦截器类型，如果是 MappedInterceptor 类型
 			if (interceptor instanceof MappedInterceptor mappedInterceptor) {
+				// 则先匹配路径后再添加到执行链
 				if (mappedInterceptor.matches(request)) {
 					chain.addInterceptor(mappedInterceptor.getInterceptor());
 				}
 			}
 			else {
+				// 否则直接添加到执行链
 				chain.addInterceptor(interceptor);
 			}
 		}
