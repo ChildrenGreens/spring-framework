@@ -1377,6 +1377,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 			Class<?> type = descriptor.getDependencyType();
 
+			// 获取@Value中的值，类似于${children.name}
 			// Step 2: pre-defined value or expression, e.g. from @Value
 			Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
 			if (value != null) {

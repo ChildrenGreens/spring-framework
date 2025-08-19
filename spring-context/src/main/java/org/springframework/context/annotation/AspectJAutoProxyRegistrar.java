@@ -42,14 +42,20 @@ class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 	public void registerBeanDefinitions(
 			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
+		/**
+		 * 	•	向 Spring 容器中注册一个 BeanDefinition，对应的 Bean 是 AspectJAnnotationAutoProxyCreator。
+		 * 	•	AspectJAnnotationAutoProxyCreator 是一个特殊的 BeanPostProcessor，负责在 Bean 初始化后为符合条件的 Bean 创建代理对象，处理切面逻辑。
+		 */
 		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);
 
 		AnnotationAttributes enableAspectJAutoProxy =
 				AnnotationConfigUtils.attributesFor(importingClassMetadata, EnableAspectJAutoProxy.class);
 		if (enableAspectJAutoProxy != null) {
+			// 强制 AOP 使用 CGLIB 动态代理（即类代理），而不是 JDK 动态代理。
 			if (enableAspectJAutoProxy.getBoolean("proxyTargetClass")) {
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
+			// 允许目标方法通过 AopContext.currentProxy() 获取代理对象。
 			if (enableAspectJAutoProxy.getBoolean("exposeProxy")) {
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}

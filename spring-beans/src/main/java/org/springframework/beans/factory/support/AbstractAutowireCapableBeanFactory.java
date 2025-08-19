@@ -1000,6 +1000,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
+				// 三级缓存工厂 objectFactory.getObject()调用这个方法
 				exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);
 			}
 		}
