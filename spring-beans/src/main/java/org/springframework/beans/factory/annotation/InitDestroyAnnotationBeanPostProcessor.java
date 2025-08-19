@@ -263,7 +263,6 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 
 
 	private LifecycleMetadata findLifecycleMetadata(Class<?> beanClass) {
-		// TODO: 为啥不放在缓存里
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
 			return buildLifecycleMetadata(beanClass);

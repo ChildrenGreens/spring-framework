@@ -255,6 +255,7 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 		// Resolve placeholders in alias target names and aliases as well.
 		beanFactoryToProcess.resolveAliases(valueResolver);
 
+		// 把内嵌的Value解析器设置到BeanFactory中...为@Value的依赖注入做准备
 		// Resolve placeholders in embedded values such as annotation attributes.
 		beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
 	}
