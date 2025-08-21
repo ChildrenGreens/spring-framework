@@ -650,7 +650,6 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				//检验是否唯一
 				validateMethodMapping(handlerMethod, mapping);
 
-				//建立uri对象和handlerMethod的映射关系
 				Set<String> directPaths = AbstractHandlerMethodMapping.this.getDirectPaths(mapping);
 				for (String path : directPaths) {
 					//建立url和RequestMappingInfo映射关系
@@ -676,6 +675,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				// We do this strictly after using the original instance in the CORS lookups
 				handlerMethod = handlerMethod.createWithValidateFlags();
 
+				//建立对象RequestMappingInfo和handlerMethod的映射关系
 				this.registry.put(mapping,
 						new MappingRegistration<>(mapping, handlerMethod, directPaths, name, corsConfig != null));
 			}
