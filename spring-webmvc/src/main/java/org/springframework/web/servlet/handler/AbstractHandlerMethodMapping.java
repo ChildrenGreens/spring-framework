@@ -227,6 +227,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				processCandidateBean(beanName);
 			}
 		}
+		// 统计建立的requestMappingInfo和HandlerMethod的映射关系的总数量
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
