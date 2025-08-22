@@ -544,6 +544,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
 		HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 		Class<?> beanType = handlerMethod.getBeanType();
+		// 获取类和方法的上面@CrossOrigin注解
 		CrossOrigin typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(beanType, CrossOrigin.class);
 		CrossOrigin methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, CrossOrigin.class);
 
@@ -551,10 +552,12 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 			return null;
 		}
 
+		// 用类上的@CrossOrigin注解和方法上的@CrossOrigin注解来创建一个CorsConfiguration对象，方法会覆盖类上的相同属性
 		CorsConfiguration config = new CorsConfiguration();
 		updateCorsConfig(config, typeAnnotation);
 		updateCorsConfig(config, methodAnnotation);
 
+		// 如果类上和方法上都没有设置允许的请求方法，则从RequestMappingInfo中获取
 		if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
 			for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
 				config.addAllowedMethod(allowedMethod.name());

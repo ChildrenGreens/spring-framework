@@ -590,20 +590,25 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	public void afterPropertiesSet() {
 		// Do this first, it may add ResponseBody advice beans
 		initControllerAdviceCache();
+		// 初始化消息转化器
 		initMessageConverters();
 
+		// 初始化参数解析器
 		if (this.argumentResolvers == null) {
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
+		// 初始化InitBinder解析器
 		if (this.initBinderArgumentResolvers == null) {
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultInitBinderArgumentResolvers();
 			this.initBinderArgumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
+		// 初始化返回值解析器
 		if (this.returnValueHandlers == null) {
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
+		//在检测到 Bean Validation 可用时，基于当前参数解析器构建一个 HandlerMethodValidator，让 @ModelAttribute 与 @RequestParam 的校验在 MVC 调用链中自动执行，并与现有的 WebDataBinder 配置保持一致。
 		if (BEAN_VALIDATION_PRESENT) {
 			List<HandlerMethodArgumentResolver> resolvers = this.argumentResolvers.getResolvers();
 			this.methodValidator = HandlerMethodValidator.from(
@@ -628,6 +633,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			return;
 		}
 
+		// 查询所有的有@ControllerAdvice Bean
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 
 		List<Object> requestResponseBodyAdviceBeans = new ArrayList<>();
@@ -637,14 +643,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (beanType == null) {
 				throw new IllegalStateException("Unresolvable type for ControllerAdviceBean: " + adviceBean);
 			}
+			// 查找@ControllerAdvice bean中有@ModelAttribute注解的所有方法
 			Set<Method> attrMethods = MethodIntrospector.selectMethods(beanType, MODEL_ATTRIBUTE_METHODS);
 			if (!attrMethods.isEmpty()) {
 				this.modelAttributeAdviceCache.put(adviceBean, attrMethods);
 			}
+			// 查找@ControllerAdvice bean中有@InitBinder注解的所有方法
 			Set<Method> binderMethods = MethodIntrospector.selectMethods(beanType, INIT_BINDER_METHODS);
 			if (!binderMethods.isEmpty()) {
 				this.initBinderAdviceCache.put(adviceBean, binderMethods);
 			}
+			// 查找@ControllerAdvice bean中有继承自RequestBodyAdvice或ResponseBodyAdvice的bean
 			if (RequestBodyAdvice.class.isAssignableFrom(beanType) || ResponseBodyAdvice.class.isAssignableFrom(beanType)) {
 				requestResponseBodyAdviceBeans.add(adviceBean);
 			}

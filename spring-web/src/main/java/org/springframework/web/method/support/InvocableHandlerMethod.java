@@ -189,6 +189,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 					getBean(), getBridgedMethod(), getMethodParameters(), args, this.validationGroups);
 		}
 
+		// 调用doInvoke方法，执行具体的业务逻辑
 		Object returnValue = doInvoke(args);
 
 		if (shouldValidateReturnValue() && this.methodValidator != null) {

@@ -173,6 +173,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		ServletServerHttpRequest inputMessage = createInputMessage(webRequest);
+		// 读取消息
 		Object arg = readWithMessageConverters(inputMessage, parameter, paramType);
 		if (arg == null && checkRequired(parameter)) {
 			throw new HttpMessageNotReadableException("Required request body is missing: " +
@@ -205,6 +206,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		}
 
 		// Try even with null return value. ResponseBodyAdvice could get involved.
+		// 核心逻辑，重点看
 		writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage);
 	}
 

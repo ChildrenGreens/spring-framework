@@ -145,6 +145,7 @@ public class ModelAttributeMethodProcessor implements HandlerMethodArgumentResol
 			ResolvableType type = ResolvableType.forMethodParameter(parameter);
 			WebDataBinder binder = binderFactory.createBinder(webRequest, attribute, name, type);
 			if (attribute == null) {
+				// 调用构造方法，将构造出来的对象set到binder中target属性上
 				constructAttribute(binder, webRequest);
 				attribute = wrapAsOptionalIfNecessary(parameter, binder.getTarget());
 			}
