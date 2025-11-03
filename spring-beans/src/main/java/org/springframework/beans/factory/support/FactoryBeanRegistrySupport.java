@@ -158,6 +158,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 									object = postProcessObjectFromSingletonFactoryBean(object, beanName, locked);
 								}
 								if (containsSingleton(beanName)) {
+									//把实例缓存到factoryBeanObjectCache map中，这个是单独缓存FactoryBean类型实例的map
 									this.factoryBeanObjectCache.put(beanName, object);
 								}
 							}
@@ -199,6 +200,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 
 		Object object;
 		try {
+			//调用重写FactoryBean的类的getObject方法
 			object = (requiredType != null && factory instanceof SmartFactoryBean<?> smartFactoryBean ?
 					smartFactoryBean.getObject(requiredType) : factory.getObject());
 		}

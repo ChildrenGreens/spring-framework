@@ -75,6 +75,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 */
 	public void setConfigLocations(String @Nullable ... locations) {
 		if (locations != null) {
+			// 判断有没有空元素
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {

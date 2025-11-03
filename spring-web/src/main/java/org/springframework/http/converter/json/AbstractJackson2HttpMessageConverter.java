@@ -360,7 +360,9 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
 
+		// 获取参数类型的 JavaType
 		JavaType javaType = getJavaType(clazz, null);
+		// 读取 JavaType 对应的对象
 		return readJavaType(javaType, inputMessage);
 	}
 
@@ -394,6 +396,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 			ObjectReader objectReader = objectMapper.reader().forType(javaType);
 			objectReader = customizeReader(objectReader, javaType);
 			if (isUnicode) {
+				// 读取数据
 				return objectReader.readValue(inputStream);
 			}
 			else {

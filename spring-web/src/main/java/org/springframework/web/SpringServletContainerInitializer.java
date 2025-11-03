@@ -107,6 +107,8 @@ import org.springframework.util.ReflectionUtils;
  * @see #onStartup(Set, ServletContext)
  * @see WebApplicationInitializer
  */
+// spring-web的spi技术（MATA-INF/services/java.servlet.SpringServletContainerInitializer）会调用到这个类
+// HandlesTypes会加载所有实现WebApplicationInitializer接口的实例
 @HandlesTypes(WebApplicationInitializer.class)
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
 
