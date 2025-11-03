@@ -205,6 +205,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		}
 
 		// Try even with null return value. ResponseBodyAdvice could get involved.
+		// 核心逻辑，重点看
 		writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage);
 	}
 
