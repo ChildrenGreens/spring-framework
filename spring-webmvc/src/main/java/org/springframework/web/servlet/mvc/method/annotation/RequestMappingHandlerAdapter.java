@@ -590,20 +590,25 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	public void afterPropertiesSet() {
 		// Do this first, it may add ResponseBody advice beans
 		initControllerAdviceCache();
+		// 初始化消息转化器
 		initMessageConverters();
 
+		// 初始化参数解析器
 		if (this.argumentResolvers == null) {
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
+		// 初始化InitBinder解析器
 		if (this.initBinderArgumentResolvers == null) {
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultInitBinderArgumentResolvers();
 			this.initBinderArgumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
+		// 初始化返回值解析器
 		if (this.returnValueHandlers == null) {
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
+		//在检测到 Bean Validation 可用时，基于当前参数解析器构建一个 HandlerMethodValidator，让 @ModelAttribute 与 @RequestParam 的校验在 MVC 调用链中自动执行，并与现有的 WebDataBinder 配置保持一致。
 		if (BEAN_VALIDATION_PRESENT) {
 			List<HandlerMethodArgumentResolver> resolvers = this.argumentResolvers.getResolvers();
 			this.methodValidator = HandlerMethodValidator.from(
@@ -628,6 +633,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			return;
 		}
 
+		// 查询所有的有@ControllerAdvice Bean
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 
 		List<Object> requestResponseBodyAdviceBeans = new ArrayList<>();
@@ -637,14 +643,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (beanType == null) {
 				throw new IllegalStateException("Unresolvable type for ControllerAdviceBean: " + adviceBean);
 			}
+			// 查找@ControllerAdvice bean中有@ModelAttribute注解的所有方法
 			Set<Method> attrMethods = MethodIntrospector.selectMethods(beanType, MODEL_ATTRIBUTE_METHODS);
 			if (!attrMethods.isEmpty()) {
 				this.modelAttributeAdviceCache.put(adviceBean, attrMethods);
 			}
+			// 查找@ControllerAdvice bean中有@InitBinder注解的所有方法
 			Set<Method> binderMethods = MethodIntrospector.selectMethods(beanType, INIT_BINDER_METHODS);
 			if (!binderMethods.isEmpty()) {
 				this.initBinderAdviceCache.put(adviceBean, binderMethods);
 			}
+			// 查找@ControllerAdvice bean中有继承自RequestBodyAdvice或ResponseBodyAdvice的bean
 			if (RequestBodyAdvice.class.isAssignableFrom(beanType) || ResponseBodyAdvice.class.isAssignableFrom(beanType)) {
 				requestResponseBodyAdviceBeans.add(adviceBean);
 			}
@@ -888,6 +897,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 			else {
 				// No HttpSession available -> no mutex necessary
+				//Controller里面具体方法调用，重点看
 				mav = invokeHandlerMethod(request, response, handlerMethod);
 			}
 		}
@@ -956,22 +966,31 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		ServletWebRequest webRequest = (asyncWebRequest instanceof ServletWebRequest ?
 				(ServletWebRequest) asyncWebRequest : new ServletWebRequest(request, response));
 
+		// 获取数据绑定工厂  @InitBinder注解支持，没太多用
 		WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+		// Model工厂,收集了@ModelAttribute注解的方法
 		ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
+		// 可调用的方法对象
 		ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 		if (this.argumentResolvers != null) {
+			// 设置返回值解析器
 			invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 		}
 		if (this.returnValueHandlers != null) {
+			// 设置返回值解析器
 			invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 		}
+		// 设置参数绑定工厂
 		invocableMethod.setDataBinderFactory(binderFactory);
+		// 设置参数名称解析类
 		invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
 		invocableMethod.setMethodValidator(this.methodValidator);
 
 		ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 		mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
+		// 调用有@ModelAttribute注解的方法。每次请求都会调用有@ModelAttribute注解的方法
+		// 把@ModelAttribute注解的方法的返回值存储到 ModelAndViewContainer对象的map中了
 		modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 		mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 
@@ -988,6 +1007,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			invocableMethod = invocableMethod.wrapConcurrentResult(result);
 		}
 
+		//Controller方法调用，重点看看
 		invocableMethod.invokeAndHandle(webRequest, mavContainer);
 		if (asyncManager.isConcurrentHandlingStarted()) {
 			return null;

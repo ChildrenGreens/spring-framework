@@ -506,6 +506,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		// 钩子方法，获取handler对象
 		Object handler = getHandlerInternal(request);
 		if (handler == null) {
 			handler = getDefaultHandler();
@@ -523,6 +524,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 			initLookupPath(request);
 		}
 
+		//获取HandlerMethod和过滤器链的包装类
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (request.getAttribute(SUPPRESS_LOGGING_ATTRIBUTE) == null) {
@@ -534,9 +536,12 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 			}
 		}
 
+		//是否是跨域请求,就是查看request请求头中是否有Origin属性
 		if (hasCorsConfigurationSource(handler) || CorsUtils.isPreFlightRequest(request)) {
+			//自定义的钩子方法获取跨域配置
 			CorsConfiguration config = getCorsConfiguration(handler, request);
 			if (getCorsConfigurationSource() != null) {
+				//注解获取跨域配置
 				CorsConfiguration globalConfig = getCorsConfigurationSource().getCorsConfiguration(request);
 				config = (globalConfig != null ? globalConfig.combine(config) : config);
 			}
@@ -544,6 +549,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 				config.validateAllowCredentials();
 				config.validateAllowPrivateNetwork();
 			}
+			//这里设置了跨域的过滤器CorsInterceptor
 			executionChain = getCorsHandlerExecutionChain(request, executionChain, config);
 		}
 
@@ -622,16 +628,22 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @see #getAdaptedInterceptors()
 	 */
 	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		// 如果没有获得则创建一个 HandlerExecutionChain
 		HandlerExecutionChain chain = (handler instanceof HandlerExecutionChain handlerExecutionChain ?
 				handlerExecutionChain : new HandlerExecutionChain(handler));
 
+		// 在 HandlerExecutionChain 中添加拦截器
+		// 遍历 SpringMVC 容器的所有拦截器
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
+			// 判断拦截器类型，如果是 MappedInterceptor 类型
 			if (interceptor instanceof MappedInterceptor mappedInterceptor) {
+				// 则先匹配路径后再添加到执行链
 				if (mappedInterceptor.matches(request)) {
 					chain.addInterceptor(mappedInterceptor.getInterceptor());
 				}
 			}
 			else {
+				// 否则直接添加到执行链
 				chain.addInterceptor(interceptor);
 			}
 		}

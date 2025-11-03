@@ -646,6 +646,7 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		}
 		try {
 			ReflectionUtils.makeAccessible(this.aspectJAdviceMethod);
+			// 反射调用
 			return this.aspectJAdviceMethod.invoke(aspectInstance, actualArgs);
 		}
 		catch (IllegalArgumentException ex) {

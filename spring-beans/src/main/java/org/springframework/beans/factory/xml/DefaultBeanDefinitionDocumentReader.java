@@ -93,6 +93,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
+		//主要看这个方法，把root节点传进去
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -146,7 +147,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 
+		// 预留为止，让子类重写方法做一些操作
 		preProcessXml(root);
+		//主要看这个方法，标签具体解析过程
 		parseBeanDefinitions(root, current);
 		postProcessXml(root);
 
@@ -168,14 +171,19 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
 		if (delegate.isDefaultNamespace(root)) {
+			// 获取beans的子节点
 			NodeList nl = root.getChildNodes();
+			// 遍历每一个子节点
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
 				if (node instanceof Element ele) {
+					// 判断是否为默认的命名空间
 					if (delegate.isDefaultNamespace(ele)) {
+						// 解析默认元素
 						parseDefaultElement(ele, delegate);
 					}
 					else {
+						// 自定义标签解析
 						delegate.parseCustomElement(ele);
 					}
 				}
@@ -187,15 +195,21 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	}
 
 	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
+
+		// import元素, 重要程度1
 		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
 			importBeanDefinitionResource(ele);
 		}
+		// alias元素, 重要程度1
 		else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) {
 			processAliasRegistration(ele);
 		}
+
+		// bean元素, 重要程度5
 		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
 			processBeanDefinition(ele, delegate);
 		}
+		// beans组元素
 		else if (delegate.nodeNameEquals(ele, NESTED_BEANS_ELEMENT)) {
 			// recurse
 			doRegisterBeanDefinitions(ele);
@@ -303,8 +317,10 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * and registering it with the registry.
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
+		// 重点看这个方法，重要程度5，解析document，封装成BeanDefinition
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 		if (bdHolder != null) {
+			// 该方法功能不重要，设计模式重点看一下，装饰者设计模式，加上SPI设计思想
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.

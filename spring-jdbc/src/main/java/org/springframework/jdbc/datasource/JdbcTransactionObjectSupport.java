@@ -46,14 +46,17 @@ import org.springframework.util.Assert;
  */
 public abstract class JdbcTransactionObjectSupport implements SavepointManager, SmartTransactionObject {
 
+	// 当前连接对象的包装类
 	@Nullable
 	private ConnectionHolder connectionHolder;
 
 	@Nullable
 	private Integer previousIsolationLevel;
 
+	// 是否只读
 	private boolean readOnly = false;
 
+	// 是否允许创建回滚点
 	private boolean savepointAllowed = false;
 
 
@@ -162,7 +165,9 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 	public void rollbackToSavepoint(Object savepoint) throws TransactionException {
 		ConnectionHolder conHolder = getConnectionHolderForSavepoint();
 		try {
+			// 回滚到回滚点
 			conHolder.getConnection().rollback((Savepoint) savepoint);
+			// 清除提交时要回滚的标识
 			conHolder.resetRollbackOnly();
 		}
 		catch (Throwable ex) {

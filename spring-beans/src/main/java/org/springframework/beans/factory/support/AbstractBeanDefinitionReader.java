@@ -181,6 +181,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
 		for (Resource resource : resources) {
+			// 设置模式
 			count += loadBeanDefinitions(resource);
 		}
 		return count;
@@ -188,6 +189,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
+		// 加载每一个
 		return loadBeanDefinitions(location, null);
 	}
 
@@ -207,16 +209,21 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		// 拿到的为ClassPathXmlApplicationContext（具体可以看类的继承实现结构）
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
 
+		// 具体可以看类的继承实现结构
 		if (resourceLoader instanceof ResourcePatternResolver resourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				// 不重要，可以不看（流的方式加载文件）
 				Resource[] resources = resourcePatternResolver.getResources(location);
+				// 把字符串类型的XML文件路径，形如：classpath*:user/**/*-content.xml,转换成Resource对象的方式加载配置文件，然后封装成Resource对象，不重要，可以不看
+				// 重要：5
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -249,7 +256,9 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
+		// 循环遍历每一个location,例如：spring.xml
 		for (String location : locations) {
+			// 核心方法，加载beanDefinitions
 			count += loadBeanDefinitions(location);
 		}
 		return count;
