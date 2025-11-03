@@ -165,6 +165,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// init mvc 容器
 		initServletBean();
 	}
 

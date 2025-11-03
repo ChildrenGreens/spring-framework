@@ -157,13 +157,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param singletonObject the singleton object
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
+		// 一级缓存
 		Object oldObject = this.singletonObjects.putIfAbsent(beanName, singletonObject);
 		if (oldObject != null) {
 			throw new IllegalStateException("Could not register object [" + singletonObject +
 					"] under bean name '" + beanName + "': there is already object [" + oldObject + "] bound");
 		}
+		// 删除三级缓存
 		this.singletonFactories.remove(beanName);
+		// 删除二级缓存
 		this.earlySingletonObjects.remove(beanName);
+		// 统计
 		this.registeredSingletons.add(beanName);
 
 		Consumer<Object> callback = this.singletonCallbacks.get(beanName);
@@ -217,6 +221,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 				try {
 					// Consistent creation of early reference within full singleton lock.
+					//  从二级缓存中拿（当循环依赖有超过两次同一个对象getBean的时候，就会从二级缓存中取）
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
@@ -261,6 +266,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		boolean locked = (acquireLock && this.singletonLock.tryLock());
 
 		try {
+			// 如果缓存中，则直接返回
 			Object singletonObject = this.singletonObjects.get(beanName);
 			if (singletonObject == null) {
 				if (acquireLock && !locked) {
@@ -354,6 +360,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (singletonObject != null) {
 						return singletonObject;
 					}
+					// 把beanName添加到singletonsCurrentlyInCreation Set容器中，这个集合中的bean都是正在被创建的
 					beforeSingletonCreation(beanName);
 				}
 
@@ -396,11 +403,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
+					// 创建完成删除beanName
 					afterSingletonCreation(beanName);
 				}
 
 				if (newSingleton) {
 					try {
+						// 创建，加入缓存
 						addSingleton(beanName, singletonObject);
 					}
 					catch (IllegalStateException ex) {

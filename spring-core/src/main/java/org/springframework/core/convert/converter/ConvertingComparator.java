@@ -78,8 +78,21 @@ public class ConvertingComparator<S, T extends @Nullable Object> implements Comp
 
 	@Override
 	public int compare(S o1, S o2) {
+		/*
+		* 具体实现可以看外层
+		*
+		* new Converter<Method, Annotation>() {
+		* 	@Override
+		* 	public Annotation convert(Method source) {
+		* 		AspectJAnnotation<?> ann = AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(method);
+		* 		return (ann != null ? ann.getAnnotation() : null);
+		*	}
+		* }
+		*
+		* */
 		T c1 = this.converter.convert(o1);
 		T c2 = this.converter.convert(o2);
+		// 调用这个类的InstanceComparator
 		return this.comparator.compare(c1, c2);
 	}
 

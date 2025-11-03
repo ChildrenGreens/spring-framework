@@ -99,9 +99,11 @@ public abstract class AbstractFallbackCacheOperationSource implements CacheOpera
 			return null;
 		}
 
+		// 先从缓存中获取
 		Object cacheKey = getCacheKey(method, targetClass);
 		Collection<CacheOperation> cached = this.operationCache.get(cacheKey);
 
+		// 将内容为空的也缓存下来
 		if (cached != null) {
 			return (cached != NULL_CACHING_MARKER ? cached : null);
 		}
@@ -133,6 +135,7 @@ public abstract class AbstractFallbackCacheOperationSource implements CacheOpera
 	}
 
 	private @Nullable Collection<CacheOperation> computeCacheOperations(Method method, @Nullable Class<?> targetClass) {
+		// 判断是否为public方法
 		// Don't allow non-public methods, as configured.
 		if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
 			return null;
@@ -142,6 +145,7 @@ public abstract class AbstractFallbackCacheOperationSource implements CacheOpera
 			return null;
 		}
 
+		// 获取到原始的方法
 		// The method may be on an interface, but we need metadata from the target class.
 		// If the target class is null, the method will be unchanged.
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);

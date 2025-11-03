@@ -266,6 +266,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 				throw ex;
 			}
 
+			// 获取返回值的可生产媒体类型
 			List<MediaType> producibleTypes = getProducibleMediaTypes(request, valueType, targetType);
 			if (body != null && producibleTypes.isEmpty()) {
 				throw new HttpMessageNotWritableException(
@@ -273,6 +274,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			}
 
 			List<MediaType> compatibleMediaTypes = new ArrayList<>();
+			// 根据可接受和可生成的类型确定兼容的媒体类型
 			determineCompatibleMediaTypes(acceptableTypes, producibleTypes, compatibleMediaTypes);
 
 			// For ProblemDetail, fall back on RFC 9457 format
@@ -330,6 +332,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 					converterTypeToUse = ConverterType.BASE;
 				}
 				if (converterTypeToUse != null) {
+					// 调用所有实现 ResponseBodyAdvice对返回值进行修改
 					body = getAdvice().beforeBodyWrite(body, returnType, selectedMediaType,
 							(Class<? extends HttpMessageConverter<?>>) converter.getClass(), inputMessage, outputMessage);
 					if (body != null) {
@@ -337,6 +340,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 						LogFormatUtils.traceDebug(logger, traceOn ->
 								"Writing [" + LogFormatUtils.formatValue(theBody, !traceOn) + "]");
 						addContentDispositionHeader(inputMessage, outputMessage);
+						// 将最后的body写入到输出消息中
 						switch (converterTypeToUse) {
 							case BASE -> converter.write(body, selectedMediaType, outputMessage);
 							case GENERIC -> ((GenericHttpMessageConverter) converter).write(body, targetType, selectedMediaType, outputMessage);
