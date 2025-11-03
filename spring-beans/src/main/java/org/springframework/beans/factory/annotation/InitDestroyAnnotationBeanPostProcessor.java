@@ -210,8 +210,10 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 		return mergedNames.distinct().toArray(String[]::new);
 	}
 
+	// 重要
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// init destory
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
 			metadata.invokeInitMethods(bean, beanName);
@@ -284,6 +286,9 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 			return this.emptyLifecycleMetadata;
 		}
 
+		/**
+		 * 收集PostConstruct 和 PreDestroy
+		 */
 		List<LifecycleMethod> initMethods = new ArrayList<>();
 		List<LifecycleMethod> destroyMethods = new ArrayList<>();
 		Class<?> currentClass = beanClass;
@@ -394,6 +399,7 @@ public class InitDestroyAnnotationBeanPostProcessor implements DestructionAwareB
 					if (logger.isTraceEnabled()) {
 						logger.trace("Invoking init method on bean '" + beanName + "': " + lifecycleMethod.getMethod());
 					}
+					// 反射调用
 					lifecycleMethod.invoke(target);
 				}
 			}

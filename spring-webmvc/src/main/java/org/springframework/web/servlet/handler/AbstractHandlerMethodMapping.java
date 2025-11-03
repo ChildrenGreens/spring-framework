@@ -205,6 +205,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public void afterPropertiesSet() {
+		// 初始化HandlerMethods
 		initHandlerMethods();
 	}
 
@@ -215,11 +216,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handlerMethodsInitialized
 	 */
 	protected void initHandlerMethods() {
+		// 获取beanName
 		for (String beanName : getCandidateBeanNames()) {
+			// 判断是否为单列
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				processCandidateBean(beanName);
 			}
 		}
+		// 统计建立的requestMappingInfo和HandlerMethod的映射关系的总数量
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -257,7 +261,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		//如果类上面有@Controller注解或者@RequestMapping注解
 		if (beanType != null && isHandler(beanType)) {
+			//建立uri和method的映射关系
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -273,6 +279,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 		if (handlerType != null) {
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			//获取方法对象和方法上面的@RequestMapping注解属性封装对象的映射关系
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
@@ -291,6 +298,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				//建立uri和方法的各种映射关系，反正一条，根据uri要能够找到method对象
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -370,10 +378,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	protected @Nullable HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		//从request对象中获取uri，/common/query2
 		String lookupPath = initLookupPath(request);
 		this.mappingRegistry.acquireReadLock();
 		try {
+			//根据uri从映射关系中找到对应的HandlerMethod对象
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+			//把Controller类实例化
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
 		finally {
@@ -394,6 +405,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		List<Match> matches = new ArrayList<>();
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath);
 		if (directPathMatches != null) {
+			// 匹配过程，是否符合 RequestMappingInfo 里的属性值
 			addMatchingMappings(directPathMatches, matches, request);
 		}
 		if (matches.isEmpty()) {
@@ -438,6 +450,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	private void addMatchingMappings(Collection<T> mappings, List<Match> matches, HttpServletRequest request) {
 		for (T mapping : mappings) {
+			//根据request对象来创建RequestMappingInfo对象
 			T match = getMatchingMapping(mapping, request);
 			if (match != null) {
 				matches.add(new Match(match, this.mappingRegistry.getRegistrations().get(mapping)));
@@ -602,11 +615,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				//创建HandlerMethod对象，其实
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				//检验是否唯一
 				validateMethodMapping(handlerMethod, mapping);
 
 				Set<String> directPaths = AbstractHandlerMethodMapping.this.getDirectPaths(mapping);
 				for (String path : directPaths) {
+					//建立url和RequestMappingInfo映射关系
 					this.pathLookup.add(path, mapping);
 				}
 
@@ -616,10 +632,12 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					addMappingName(name, handlerMethod);
 				}
 
+				//判断method上是否有CrossOrigin注解，把注解里面的属性封装成CorsConfiguration，这个是做跨域访问控制的
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					corsConfig.validateAllowCredentials();
 					corsConfig.validateAllowPrivateNetwork();
+					//建立映射关系
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
@@ -627,6 +645,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				// We do this strictly after using the original instance in the CORS lookups
 				handlerMethod = handlerMethod.createWithValidateFlags();
 
+				//建立对象RequestMappingInfo和handlerMethod的映射关系
 				this.registry.put(mapping,
 						new MappingRegistration<>(mapping, handlerMethod, directPaths, name, corsConfig != null));
 			}

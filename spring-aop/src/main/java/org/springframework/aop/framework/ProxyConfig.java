@@ -153,9 +153,11 @@ public class ProxyConfig implements Serializable {
 	 */
 	public void copyFrom(ProxyConfig other) {
 		Assert.notNull(other, "Other ProxyConfig object must not be null");
+		// 判断是使用jdk代理还是用cglib代理
 		this.proxyTargetClass = other.proxyTargetClass;
 		this.optimize = other.optimize;
 		this.opaque = other.opaque;
+		// 是否暴露当前代理对象为ThreadLocal模式
 		this.exposeProxy = other.exposeProxy;
 		this.frozen = other.frozen;
 	}

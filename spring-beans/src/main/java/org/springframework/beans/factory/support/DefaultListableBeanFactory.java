@@ -1116,7 +1116,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		try {
 			List<CompletableFuture<?>> futures = new ArrayList<>();
 			for (String beanName : beanNames) {
+				// 把父BeanDefinition里面的属性拿到子BeanDefinition中
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 如果不是抽象的，单例的
 				if (!mbd.isAbstract() && mbd.isSingleton()) {
 					CompletableFuture<?> future = preInstantiateSingleton(beanName, mbd);
 					if (future != null) {
@@ -1208,6 +1210,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	private void instantiateSingleton(String beanName) {
+		//判断bean是否实现了FactoryBean接口，这里可以不看
 		if (isFactoryBean(beanName)) {
 			Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 			if (bean instanceof SmartFactoryBean<?> smartFactoryBean && smartFactoryBean.isEagerInit()) {
@@ -1215,6 +1218,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 		else {
+			// 主要从这里进入，看看实例化过程
 			getBean(beanName);
 		}
 	}
@@ -1258,6 +1262,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 先判断BeanDefinition是否已经注册
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
 			if (!isBeanDefinitionOverridable(beanName)) {
@@ -1304,7 +1309,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
+				// 把beanDefinition缓存到map中
 				this.beanDefinitionMap.put(beanName, beanDefinition);
+				// 把beanName放到beanDefinitionNames list中
+				//（这个list着重记住，bean实例化的时候需要用到）
 				this.beanDefinitionNames.add(beanName);
 				removeManualSingletonName(beanName);
 			}
@@ -1648,6 +1656,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				return result;
 			}
 		}
+		// 走这里
 		return doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 	}
 
@@ -1665,6 +1674,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 			Class<?> type = descriptor.getDependencyType();
 
+			// 获取@Value中的值，类似于${children.name}
 			// Step 2: pre-defined value or expression, for example, from @Value
 			Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
 			if (value != null) {
@@ -1759,6 +1769,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				autowiredBeanNames.add(autowiredBeanName);
 			}
 			if (instanceCandidate instanceof Class) {
+				// 实例化参数的bean
 				instanceCandidate = descriptor.resolveCandidate(autowiredBeanName, type, this);
 			}
 			return resolveInstance(instanceCandidate, descriptor, type, autowiredBeanName);

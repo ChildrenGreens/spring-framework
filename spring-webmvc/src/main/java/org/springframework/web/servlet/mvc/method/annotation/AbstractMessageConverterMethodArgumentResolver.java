@@ -196,13 +196,16 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 				}
 				if (converterTypeToUse != null) {
 					if (message.hasBody()) {
+						// 调用所有RequestBodyAdvice 读取数据之前操作，如解密、解包
 						HttpInputMessage msgToUse = this.advice.beforeBodyRead(message, parameter, targetType, converterClass);
+						// json 读取参数
 						body = switch (converterTypeToUse) {
 							case BASE -> ((HttpMessageConverter<T>) converter).read(targetClass, msgToUse);
 							case GENERIC -> ((GenericHttpMessageConverter<?>) converter).read(targetType, contextClass, msgToUse);
 							case SMART -> ((SmartHttpMessageConverter<?>) converter).read(targetResolvableType, msgToUse,
 									this.advice.determineReadHints(parameter, targetType, (Class<SmartHttpMessageConverter<?>>) converterClass));
 						};
+						// 调用所有RequestBodyAdvice 读取数据之后操作，校正、默认值处理
 						body = this.advice.afterBodyRead(body, msgToUse, parameter, targetType, converterClass);
 					}
 					else {

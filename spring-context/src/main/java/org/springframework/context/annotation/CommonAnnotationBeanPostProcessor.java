@@ -287,6 +287,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// 收集@PostConstruct 和 @PreDestroy 注解，加入缓存lifecycleMetadataCache
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
@@ -375,16 +376,22 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	private InjectionMetadata findResourceMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
 		// Fall back to class name as cache key, for backwards compatibility with custom callers.
+		// 生成换成key
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 		// Quick check on the concurrent map first, with minimal locking.
+		// 通过缓存获取
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
 				metadata = this.injectionMetadataCache.get(cacheKey);
+				// 判断是否要刷新
 				if (InjectionMetadata.needsRefresh(metadata, clazz)) {
+					// 如果不为null, clear清理掉
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					// @Resource 和 @Autowired 区别，Resource是jdk,而Autowired是Spring中，更换框架Resource不会报错
+					// 主要逻辑和Autowired相同，就不再重复赘述了
 					metadata = buildResourceMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -404,6 +411,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 
+			// 闭包函数
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				if (EJB_ANNOTATION_TYPE != null && field.isAnnotationPresent(EJB_ANNOTATION_TYPE)) {
 					if (Modifier.isStatic(field.getModifiers())) {
@@ -411,6 +419,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					}
 					currElements.add(new EjbRefElement(field, field, null));
 				}
+				// 主要看这个语句，
 				else if (JAKARTA_RESOURCE_TYPE != null && field.isAnnotationPresent(JAKARTA_RESOURCE_TYPE)) {
 					if (Modifier.isStatic(field.getModifiers())) {
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");

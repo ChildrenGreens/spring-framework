@@ -65,8 +65,10 @@ public abstract class AbstractSingleBeanDefinitionParser extends AbstractBeanDef
 		if (parentName != null) {
 			builder.getRawBeanDefinition().setParentName(parentName);
 		}
+		// 获取自定义标签解析类
 		Class<?> beanClass = getBeanClass(element);
 		if (beanClass != null) {
+			// 将解析类设置到beanDefinition中
 			builder.getRawBeanDefinition().setBeanClass(beanClass);
 		}
 		else {
